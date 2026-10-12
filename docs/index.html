@@ -127,6 +127,16 @@
                 </a>
               </li>
               <li>
+                <a href="audit-verification.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Merkle Audit Verification</span>
+                </a>
+              </li>
+              <li>
+                <a href="vault-and-governance.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Vault &amp; Four-Eyes Deep Dive</span>
+                </a>
+              </li>
+              <li>
                 <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
                   <span>CLI Command Reference</span>
                 </a>
@@ -196,12 +206,12 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
             </div>
-            <h3 class="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Security Architecture</h3>
+            <h3 class="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Security &amp; Governance</h3>
             <p class="text-xs text-slate-400 leading-relaxed mb-4">
-              Deep dive into SHA-256 Merkle audit chains, FIPS 140-2 AES-256 secret vaulting, and Four-Eyes maker-checker approval controls.
+              Overview of SHA-256 Merkle audit chains, FIPS 140-2 AES-256 secret vaulting, and Four-Eyes maker-checker approval controls.
             </p>
             <div class="text-xs font-mono font-semibold text-emerald-400 flex items-center space-x-1">
-              <span>Read security whitepaper</span>
+              <span>Read security architecture</span>
               <span>-&gt;</span>
             </div>
           </a>
@@ -219,6 +229,39 @@
             </p>
             <div class="text-xs font-mono font-semibold text-amber-400 flex items-center space-x-1">
               <span>Explore CLI reference</span>
+              <span>-&gt;</span>
+            </div>
+          </a>
+
+          <a href="audit-verification.html" class="glass-card rounded-2xl p-6 border border-white/[0.08] hover:border-emerald-500/40 transition-all group block">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Mathematical Audit Spec</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+              In-depth mathematical formulation: SHA-256 hash chaining, preimage resistance, and tamper-proof verification proofs.
+            </p>
+            <div class="text-xs font-mono font-semibold text-emerald-400 flex items-center space-x-1">
+              <span>Read mathematical audit paper</span>
+              <span>-&gt;</span>
+            </div>
+          </a>
+
+          <a href="vault-and-governance.html" class="glass-card rounded-2xl p-6 border border-white/[0.08] hover:border-cyan-500/40 transition-all group block">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Vault &amp; Four-Eyes Deep Dive</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+              Galois Field GF(2^128) arithmetic, GHASH authentication tags, PBKDF2 HMAC-SHA512, and Dual-Control governance.
+            </p>
+            <div class="text-xs font-mono font-semibold text-cyan-400 flex items-center space-x-1">
+              <span>Read vault &amp; governance paper</span>
               <span>-&gt;</span>
             </div>
           </a>

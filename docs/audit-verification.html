@@ -10,9 +10,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
   <script>
     tailwind.config = {
       theme: {
@@ -227,23 +243,23 @@
             <p class="text-xs text-slate-300 leading-relaxed">
               The ledger begins with a deterministic Genesis Hash $H_0$, defined as a sequence of 64 hexadecimal zeros:
             </p>
-            <div class="p-3 rounded-lg bg-black/40 font-mono text-xs text-emerald-300 border border-white/[0.05]">
-              $$H_0 = 0^{64} = \text{"0000000000000000000000000000000000000000000000000000000000000000"}$$
+            <div class="p-3 rounded-lg bg-black/40 text-center text-xs text-emerald-300 border border-white/[0.05]">
+              $$H_0 = 0^{64} = \mathtt{0000000000000000000000000000000000000000000000000000000000000000}$$
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
               For any audit event at index $i \ge 1$, its canonical payload $m_i$ is constructed. The event hash $H_i$ is recursively defined as:
             </p>
-            <div class="p-3 rounded-lg bg-black/40 font-mono text-xs text-sky-300 border border-white/[0.05]">
+            <div class="p-3 rounded-lg bg-black/40 text-center text-xs text-sky-300 border border-white/[0.05]">
               $$H_i = H(H_{i-1} \parallel m_i)$$
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
               By induction, the current tip hash $H_n$ is a cryptographic commitment of the entire event history:
             </p>
-            <div class="p-3 rounded-lg bg-black/40 font-mono text-xs text-amber-300 border border-white/[0.05]">
+            <div class="p-3 rounded-lg bg-black/40 text-center text-xs text-amber-300 border border-white/[0.05]">
               $$H_n = H(H( \dots H(H(H_0 \parallel m_1) \parallel m_2) \dots \parallel m_{n-1}) \parallel m_n)$$
             </div>
             <p class="text-xs text-slate-400">
-              Notice that $H_n$ cannot be computed without the exact input and sequence of every block $1$ through $n$. Modifying any historical block $k < n$ fundamentally invalidates $H_n$.
+              Notice that $H_n$ cannot be computed without the exact input and sequence of every block $1$ through $n$. Modifying any historical block $k \lt n$ fundamentally invalidates $H_n$.
             </p>
           </div>
         </section>
@@ -397,7 +413,7 @@ hash = crypto.createHash('sha256').update(raw).digest('hex')</pre>
           </p>
 
           <div class="p-4 rounded-xl bg-black/40 border border-white/[0.08] font-mono text-xs">
-            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-2">$ portgrid audit verify</div>
+            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-2"><code>$ portgrid audit verify</code></div>
             <pre class="text-slate-200 code-scroll overflow-x-auto">CRYPTOGRAPHIC MERKLE AUDIT LEDGER:
 
   Chain Integrity:     <span class="text-emerald-400">[VALID] Intact &amp; Tamper-Free</span>

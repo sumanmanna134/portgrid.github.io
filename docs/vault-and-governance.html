@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Dive: Secret Enclave, Four-Eyes Governance &amp; Network Isolation - PortGrid</title>
+  <meta name="description" content="Technical and mathematical specification of PortGrid Secret Enclave (AES-256-GCM, PBKDF2), Four-Eyes Maker-Checker Policy, and Network Enclaves.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+          throwOnError: false
+        });
+      }
+    });
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-35 z-0"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/90 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-6">
+        <a href="../index.html" class="flex items-center space-x-3 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_10px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+            <span class="text-[10px] font-mono text-slate-400">/ docs</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="../index.html" class="hover:text-white transition-colors">Home</a>
+        <a href="index.html" class="hover:text-white transition-colors">Overview</a>
+        <a href="installation.html" class="hover:text-white transition-colors">Installation</a>
+        <a href="blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="security.html" class="hover:text-white transition-colors">Security</a>
+        <a href="cli.html" class="hover:text-white transition-colors">CLI Reference</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/sumanmanna134/portgrid.github.io" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <!-- SIDEBAR -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08]">
+            <h3 class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider mb-3">Documentation</h3>
+            <ul class="space-y-1.5 text-xs text-slate-400">
+              <li>
+                <a href="index.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Documentation Overview</span>
+                </a>
+              </li>
+              <li>
+                <a href="installation.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Installation Guide</span>
+                </a>
+              </li>
+              <li>
+                <a href="blueprints.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Service Blueprints</span>
+                </a>
+              </li>
+              <li>
+                <a href="security.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Security &amp; Governance</span>
+                </a>
+              </li>
+              <li>
+                <a href="audit-verification.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Merkle Audit Verification</span>
+                </a>
+              </li>
+              <li>
+                <a href="vault-and-governance.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20">
+                  <span>Vault &amp; Four-Eyes Deep Dive</span>
+                </a>
+              </li>
+              <li>
+                <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>CLI Command Reference</span>
+                </a>
+              </li>
+            </ul>
+
+            <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Sections</h3>
+            <ul class="space-y-1 text-xs text-slate-400">
+              <li><a href="#threat-model" class="hover:text-sky-300">1. Threat Model &amp; Why Vault</a></li>
+              <li><a href="#fips-enclave" class="hover:text-sky-300">2. FIPS 140-2 AES-GCM Enclave</a></li>
+              <li><a href="#galois-field" class="hover:text-sky-300">3. Galois Field Mathematics</a></li>
+              <li><a href="#pbkdf2-math" class="hover:text-sky-300">4. PBKDF2 Key Derivation</a></li>
+              <li><a href="#four-eyes" class="hover:text-sky-300">5. Four-Eyes Governance</a></li>
+              <li><a href="#network-enclave" class="hover:text-sky-300">6. Isolated Network Enclaves</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="lg:col-span-3 space-y-12">
+
+        <!-- TITLE SECTION -->
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-mono border border-cyan-500/20 mb-4">
+            <span>FINTECH ARCHITECTURAL SPECIFICATION</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">
+            Vault Architecture, Four-Eyes Governance &amp; Network Isolation
+          </h1>
+          <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
+            A deep-dive technical paper explaining why PortGrid introduced cryptographic vaulting, the mathematical foundations of authenticated AES-256-GCM envelope encryption, dual-control Maker-Checker policies, and kernel network namespaces.
+          </p>
+        </div>
+
+        <!-- 1. THREAT MODEL -->
+        <section id="threat-model" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 font-mono text-xs flex items-center justify-center">1</span>
+            <span>Why PortGrid Vault Was Introduced (The Threat Model)</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            In standard development environments, credentials (database passwords, API tokens, JWT private signing keys) suffer from four systemic vulnerabilities known as <em>Secret Sprawl</em>:
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-rose-400 mb-1">VULNERABILITY A: PLAIN-TEXT LEAKAGE</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Traditional Docker Compose files and local <code class="text-sky-300 font-mono text-[11px]">.env</code> files store master passwords in unencrypted plain text on disk. These files are routinely committed to public git repositories by accident or indexed by local search processes.
+              </p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-rose-400 mb-1">VULNERABILITY B: DOCKER INSPECT EXPOSURE</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                When passwords are passed via standard container environment variables (<code class="text-sky-300 font-mono text-[11px]">-e POSTGRES_PASSWORD=...</code>), any unprivileged process with Docker socket access can execute <code class="text-sky-300 font-mono text-[11px]">docker inspect</code> to dump every secret in plain text.
+              </p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-rose-400 mb-1">VULNERABILITY C: ROGUE VOLUME DESTRUCTION</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                A single developer mistake running destructive teardowns or purges instantly wipes critical local test databases or replication sets without team oversight or cryptographic record.
+              </p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-rose-400 mb-1">VULNERABILITY D: BROAD LAN EXPOSURE</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Binding ports to <code class="text-sky-300 font-mono text-[11px]">0.0.0.0</code> exposes local test databases (PostgreSQL, MongoDB, Kafka) to every machine on the same public coffee shop Wi-Fi or corporate office network.
+              </p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400 pt-2 leading-relaxed">
+            PortGrid introduces a unified <strong>Secret Enclave Vault</strong>, <strong>Four-Eyes Maker-Checker Governance</strong>, and <strong>Isolated Network Enclaves</strong> to guarantee that even on a developer workstation, infrastructure meets SOC 2 Type II, PCI-DSS v4.0 Requirement 3, and FIPS 140-2 Level 1/2 cryptographic compliance standards.
+          </p>
+        </section>
+
+        <!-- 2. FIPS ENCLAVE -->
+        <section id="fips-enclave" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 font-mono text-xs flex items-center justify-center">2</span>
+            <span>FIPS 140-2 Encrypted Secret Enclave (AES-256-GCM)</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            PortGrid uses <strong>Envelope Encryption</strong>. Every generated password, connection string, and TLS key is encrypted before touching host disk using authenticated symmetric encryption:
+          </p>
+
+          <div class="p-4 rounded-xl bg-black/50 text-center font-mono text-xs text-sky-300 border border-white/[0.08]">
+            $$\mathcal{C}, \mathcal{T} = \text{AES-256-GCM}_{\mathcal{K}}(\mathcal{P}, \text{IV}, \text{AAD})$$
+          </div>
+
+          <div class="space-y-3 text-xs text-slate-300">
+            <div class="flex items-start space-x-3">
+              <span class="text-sky-400 font-bold font-mono">$\mathcal{P}$</span>
+              <span><strong>Plaintext Secret:</strong> Database password, auth token, or encryption key.</span>
+            </div>
+            <div class="flex items-start space-x-3">
+              <span class="text-sky-400 font-bold font-mono">$\mathcal{K}$</span>
+              <span><strong>256-bit Master Key:</strong> High-entropy cryptographic key derived via PBKDF2 stored at <code class="text-sky-300 font-mono">~/.portgrid/portgrid.env</code> (mode 0600).</span>
+            </div>
+            <div class="flex items-start space-x-3">
+              <span class="text-sky-400 font-bold font-mono">$\text{IV}$</span>
+              <span><strong>Initialization Vector (Nonce):</strong> 96-bit (12-byte) cryptographically secure random value generated fresh for every encryption operation.</span>
+            </div>
+            <div class="flex items-start space-x-3">
+              <span class="text-sky-400 font-bold font-mono">$\text{AAD}$</span>
+              <span><strong>Additional Authenticated Data:</strong> Service ID and timestamp bound mathematically to the ciphertext to prevent ciphertext transplant attacks.</span>
+            </div>
+            <div class="flex items-start space-x-3">
+              <span class="text-sky-400 font-bold font-mono">$\mathcal{T}$</span>
+              <span><strong>Authentication Tag:</strong> 128-bit GHASH authentication tag verifying that the ciphertext and AAD have not been modified by a single bit.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. GALOIS FIELD MATHEMATICS -->
+        <section id="galois-field" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 font-mono text-xs flex items-center justify-center">3</span>
+            <span>Mathematical Foundation of Galois/Counter Mode (GCM)</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Galois/Counter Mode combines standard AES Counter Mode (CTR) for confidentiality with polynomial evaluation over the finite field $\text{GF}(2^{128})$ for authenticity.
+          </p>
+
+          <div class="space-y-4 text-xs text-slate-300">
+            <h3 class="text-sm font-bold text-white">Galois Field Definition: $\text{GF}(2^{128})$</h3>
+            <p class="leading-relaxed">
+              Elements in the field are represented as binary polynomials of degree strictly less than 128. Field multiplication is defined modulo the NIST standard irreducible polynomial $f(x)$:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 text-center font-mono text-emerald-300 border border-white/[0.05]">
+              $$f(x) = x^{128} + x^7 + x^2 + x + 1$$
+            </div>
+
+            <h3 class="text-sm font-bold text-white pt-2">The GHASH Universal Hash Function</h3>
+            <p class="leading-relaxed">
+              Let $H = \text{AES}_{\mathcal{K}}(0^{128})$ be the hash subkey. For blocks $X_1, X_2, \dots, X_m \in \text{GF}(2^{128})$, the GHASH function evaluates a polynomial in Horner form:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 text-center font-mono text-sky-300 border border-white/[0.05]">
+              $$\text{GHASH}_H(X_1, \dots, X_m) = \sum_{j=1}^{m} X_j \cdot H^{m - j + 1}$$
+            </div>
+            <p class="leading-relaxed">
+              The 128-bit authentication tag $T$ is computed by masking the polynomial evaluation with the encrypted initial counter block $J_0$:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 text-center font-mono text-amber-300 border border-white/[0.05]">
+              $$T = \text{GHASH}_H(C) \oplus \text{AES}_{\mathcal{K}}(J_0)$$
+            </div>
+            <p class="text-slate-400 leading-relaxed">
+              If an attacker attempts to flip a single bit in the stored secret, the authentication tag evaluation fails during decryption with probability $1 - 2^{-128}$, instantly aborting container instantiation before invalid credentials can be injected.
+            </p>
+          </div>
+        </section>
+
+        <!-- 4. PBKDF2 MATHEMATICS -->
+        <section id="pbkdf2-math" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-400 font-mono text-xs flex items-center justify-center">4</span>
+            <span>PBKDF2 Key Derivation Mechanics</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            To prevent brute-force and dictionary attacks on master passwords, PortGrid employs RFC 8018 PBKDF2 with HMAC-SHA512:
+          </p>
+
+          <div class="p-3 rounded-lg bg-black/40 text-center font-mono text-xs text-sky-300 border border-white/[0.05]">
+            $$\mathcal{K} = \text{PBKDF2}(\text{PRF}=\text{HMAC-SHA512}, \text{Password}, \text{Salt}, c = 600{,}000, \text{dkLen} = 32)$$
+          </div>
+
+          <div class="space-y-3 text-xs text-slate-300">
+            <p class="leading-relaxed">
+              Each block $T_i$ of derived key material is computed as the XOR sum of $c$ successive HMAC evaluations:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 text-center font-mono text-emerald-300 border border-white/[0.05]">
+              $$T_i = U_1 \oplus U_2 \oplus U_3 \oplus \dots \oplus U_c$$
+            </div>
+            <div class="p-3 rounded-lg bg-black/40 text-center font-mono text-emerald-300 border border-white/[0.05]">
+              $$U_1 = \text{HMAC-SHA512}(\text{Password}, \text{Salt} \parallel \text{INT}(i)), \quad U_k = \text{HMAC-SHA512}(\text{Password}, U_{k-1})$$
+            </div>
+            <p class="leading-relaxed text-slate-400">
+              With $c = 600{,}000$ iterations (exceeding OWASP 2024 recommendations), calculating a single candidate password requires hundreds of milliseconds on modern hardware, rendering GPU-accelerated brute-force attacks economically and computationally impossible.
+            </p>
+          </div>
+        </section>
+
+        <!-- 5. FOUR-EYES GOVERNANCE -->
+        <section id="four-eyes" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">5</span>
+            <span>Four-Eyes Maker-Checker Governance Policy</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            In enterprise banking systems, the <em>Four-Eyes Principle</em> mandates that any critical transaction or destructive modification must be approved by at least two distinct individuals: a <strong>Maker</strong> (initiator) and a <strong>Checker</strong> (approver).
+          </p>
+
+          <div class="space-y-4 text-xs text-slate-300">
+            <h3 class="text-sm font-bold text-white">Cryptographic State Machine</h3>
+            <p class="leading-relaxed">
+              When Four-Eyes mode is active, high-risk actions (volume purge, master key rotation, production sync) cannot execute immediately. They traverse a formal state machine:
+            </p>
+
+            <div class="p-4 rounded-xl bg-black/40 border border-white/[0.08] font-mono text-xs text-center space-y-2">
+              <div class="text-sky-300">
+                $$S_{\text{IDLE}} \xrightarrow{\text{Propose}(u_{\text{maker}}, \text{action})} S_{\text{PENDING}}$$
+              </div>
+              <div class="text-amber-300">
+                $$S_{\text{PENDING}} \xrightarrow{\text{Approve}(u_{\text{checker}}, \text{signature})} S_{\text{APPROVED}} \quad (\text{Enforced: } u_{\text{maker}} \neq u_{\text{checker}})$$
+              </div>
+              <div class="text-emerald-300">
+                $$S_{\text{APPROVED}} \xrightarrow{\text{Execute}()} S_{\text{EXECUTED}} \implies \text{CommitToMerkleLedger}()$$
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+                <div class="text-xs font-mono font-bold text-sky-400 mb-1">MAKER INITIATION (STEP 1)</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Operator submits a mutation request (e.g. deleting PostgreSQL volume). PortGrid generates a cryptographic ticket ID:
+                  <code class="text-sky-300 font-mono text-[11px] block mt-1">Ticket: tkt-7f8a12 (Status: PENDING_APPROVAL)</code>
+                </p>
+              </div>
+              <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+                <div class="text-xs font-mono font-bold text-emerald-400 mb-1">CHECKER APPROVAL (STEP 2)</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Second authorized operator reviews the ticket in the Web Console or CLI and applies approval. Both cryptographic identities are committed into the Merkle audit chain.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. NETWORK ENCLAVES -->
+        <section id="network-enclave" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-purple-500/20 text-purple-400 font-mono text-xs flex items-center justify-center">6</span>
+            <span>Isolated Network Enclaves &amp; Loopback Hardening</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            PortGrid enforces physical host network isolation by separating inter-container transport from developer access:
+          </p>
+
+          <div class="space-y-4 text-xs text-slate-300">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+                <div class="text-xs font-mono font-bold text-sky-400 mb-1">1. STRICT 127.0.0.1 BINDING</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  All exposed host ports (5432, 6379, 9092, 3000) bind strictly to <code class="text-sky-300 font-mono">127.0.0.1</code>. Zero sockets listen on <code class="text-rose-300 font-mono">0.0.0.0</code>, completely shielding local engines from Wi-Fi LAN scans.
+                </p>
+              </div>
+              <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+                <div class="text-xs font-mono font-bold text-purple-400 mb-1">2. INTERNAL BRIDGE NAMESPACE</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Companion admin consoles (pgAdmin, Mongo Express, AKHQ) communicate with their database engines over a dedicated internal network namespace (<code class="text-purple-300 font-mono">portgrid-net</code>) via private DNS names.
+                </p>
+              </div>
+              <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+                <div class="text-xs font-mono font-bold text-emerald-400 mb-1">3. NO PRIVILEGE ESCALATION</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Containers are spawned with kernel flag <code class="text-emerald-300 font-mono">--security-opt no-new-privileges</code>, preventing internal processes from acquiring root elevation or breaking out of user namespaces.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="pt-8 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <a href="audit-verification.html" class="text-slate-400 hover:text-white flex items-center space-x-1.5 transition-colors">
+            <span>&lt;-</span>
+            <span>Merkle Audit Verification</span>
+          </a>
+          <a href="cli.html" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1.5 transition-colors">
+            <span>CLI Command Reference</span>
+            <span>-&gt;</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#05070f] mt-20 py-8 relative z-10 text-xs text-slate-500 text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      PortGrid is open source software licensed under Apache 2.0. Built for zero-friction local cloud orchestration.
+    </div>
+  </footer>
+
+</body>
+</html>
