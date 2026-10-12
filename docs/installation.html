@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installation Guide - PortGrid Documentation</title>
+  <meta name="description" content="Complete installation and deployment guide for PortGrid. Learn how to install via NPM, NPX, Homebrew, Docker container, and air-gapped enterprise environments.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-35 z-0"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/90 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-6">
+        <a href="../index.html" class="flex items-center space-x-3 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_10px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+            <span class="text-[10px] font-mono text-slate-400">/ docs</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="../index.html" class="hover:text-white transition-colors">Home</a>
+        <a href="index.html" class="hover:text-white transition-colors">Overview</a>
+        <a href="installation.html" class="text-sky-400 font-semibold border-b border-sky-400 pb-0.5">Installation</a>
+        <a href="blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="security.html" class="hover:text-white transition-colors">Security</a>
+        <a href="cli.html" class="hover:text-white transition-colors">CLI Reference</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <!-- SIDEBAR -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08]">
+            <h3 class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider mb-3">Documentation</h3>
+            <ul class="space-y-1.5 text-xs text-slate-400">
+              <li>
+                <a href="index.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Documentation Overview</span>
+                </a>
+              </li>
+              <li>
+                <a href="installation.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20">
+                  <span>Installation Guide</span>
+                </a>
+              </li>
+              <li>
+                <a href="blueprints.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Service Blueprints</span>
+                </a>
+              </li>
+              <li>
+                <a href="security.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Security &amp; Governance</span>
+                </a>
+              </li>
+              <li>
+                <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>CLI Command Reference</span>
+                </a>
+              </li>
+            </ul>
+
+            <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">On This Page</h3>
+            <ul class="space-y-1 text-xs text-slate-400">
+              <li><a href="#prerequisites" class="hover:text-sky-300">1. System Prerequisites</a></li>
+              <li><a href="#npm-install" class="hover:text-sky-300">2. NPM Global Install</a></li>
+              <li><a href="#npx-run" class="hover:text-sky-300">3. Zero-Install NPX</a></li>
+              <li><a href="#homebrew" class="hover:text-sky-300">4. Homebrew (macOS/Linux)</a></li>
+              <li><a href="#docker" class="hover:text-sky-300">5. Standalone Docker Run</a></li>
+              <li><a href="#airgap" class="hover:text-sky-300">6. Air-Gapped Enterprise</a></li>
+              <li><a href="#verification" class="hover:text-sky-300">7. Health &amp; Verification</a></li>
+              <li><a href="#troubleshooting" class="hover:text-sky-300">8. Troubleshooting</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="lg:col-span-3 space-y-12">
+
+        <!-- TITLE SECTION -->
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs font-mono border border-sky-500/20 mb-4">
+            <span>PORTGRID DEPLOYMENT GUIDE</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">Installation &amp; Setup</h1>
+          <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
+            PortGrid is designed to boot in under five seconds on any developer workstation or dedicated CI/CD agent. Choose the deployment method that fits your environment, from zero-install NPX to air-gapped enterprise tarballs.
+          </p>
+        </div>
+
+        <!-- 1. PREREQUISITES -->
+        <section id="prerequisites" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">1</span>
+            <span>System Prerequisites</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            Before launching PortGrid, ensure your host environment meets these baseline requirements:
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-semibold text-sky-400 mb-1">CONTAINER RUNTIME</div>
+              <div class="text-sm font-bold text-white mb-2">Docker Engine 24.0+</div>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Compatible with Docker Desktop, OrbStack (macOS), Colima, or native Linux dockerd with accessible /var/run/docker.sock.
+              </p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-semibold text-sky-400 mb-1">NODE RUNTIME</div>
+              <div class="text-sm font-bold text-white mb-2">Node.js 18.0.0+ LTS</div>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Required for CLI operation (NPM or NPX). Containerized deployment modes require zero local Node.js installation.
+              </p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-semibold text-sky-400 mb-1">PORT ALLOCATION</div>
+              <div class="text-sm font-bold text-white mb-2">Ports 3000 &amp; 4000</div>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Port 3000 hosts the Web UI console; port 4000 hosts the orchestrator daemon. Both can be configured via environment flags.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. NPM GLOBAL INSTALL -->
+        <section id="npm-install" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">2</span>
+            <span>Option A: Global NPM Installation (Recommended)</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            Install the PortGrid CLI globally across your operating system for persistent shell access:
+          </p>
+          <div class="glass-card rounded-xl p-4 border border-white/[0.08] font-mono text-xs">
+            <div class="flex items-center justify-between text-slate-400 pb-2 mb-2 border-b border-white/[0.08]">
+              <span>bash / zsh terminal</span>
+              <span class="text-sky-400">global installation</span>
+            </div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-slate-500"># 1. Install PortGrid CLI globally from npm registry</span>
+<span class="text-sky-400">npm</span> install -g portgrid
+
+<span class="text-slate-500"># 2. Boot the orchestrator and launch the web console</span>
+<span class="text-sky-400">portgrid</span> up
+
+<span class="text-slate-500"># Web console launches automatically at http://localhost:3000</span></pre>
+          </div>
+        </section>
+
+        <!-- 3. NPX INSTANT RUN -->
+        <section id="npx-run" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">3</span>
+            <span>Option B: Zero-Install Instant Run via NPX</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            Run PortGrid immediately without modifying global system node_modules packages:
+          </p>
+          <div class="glass-card rounded-xl p-4 border border-white/[0.08] font-mono text-xs">
+            <div class="flex items-center justify-between text-slate-400 pb-2 mb-2 border-b border-white/[0.08]">
+              <span>bash / zsh terminal</span>
+              <span class="text-emerald-400">zero install mode</span>
+            </div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-slate-500"># Pull and execute the latest verified binary directly</span>
+<span class="text-emerald-400">npx</span> portgrid up</pre>
+          </div>
+        </section>
+
+        <!-- 4. HOMEBREW -->
+        <section id="homebrew" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">4</span>
+            <span>Option C: Homebrew Package (macOS &amp; Linux)</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            For native Apple Silicon / Intel macOS and Linuxbrew users:
+          </p>
+          <div class="glass-card rounded-xl p-4 border border-white/[0.08] font-mono text-xs">
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-slate-500"># Tap the official PortGrid distribution repository</span>
+<span class="text-sky-400">brew</span> tap mannasuman134/tap
+
+<span class="text-slate-500"># Install the formula</span>
+<span class="text-sky-400">brew</span> install portgrid
+
+<span class="text-slate-500"># Start as background daemon or interactive CLI</span>
+<span class="text-sky-400">portgrid</span> up --daemon</pre>
+          </div>
+        </section>
+
+        <!-- 5. DOCKER RUN -->
+        <section id="docker" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">5</span>
+            <span>Option D: Standalone Containerized Mode</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            Run PortGrid entirely inside an isolated container with mounted host Docker daemon access:
+          </p>
+          <div class="glass-card rounded-xl p-4 border border-white/[0.08] font-mono text-xs">
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-slate-500"># Run PortGrid container with host socket passthrough</span>
+<span class="text-sky-400">docker</span> run -d \
+  --name portgrid-orchestrator \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -p 4000:4000 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portgrid_data:/root/.portgrid \
+  portgrid/portgrid:latest</pre>
+          </div>
+        </section>
+
+        <!-- 6. AIR-GAPPED ENTERPRISE -->
+        <section id="airgap" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">6</span>
+            <span>Option E: Air-Gapped &amp; Enterprise Offline Bundle</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            For sovereign enclaves, defence environments, and air-gapped financial networks where public registry access is blocked:
+          </p>
+          <div class="glass-card rounded-xl p-4 border border-white/[0.08] font-mono text-xs">
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-slate-500"># 1. On an internet-connected workstation, download the self-contained bundle</span>
+<span class="text-sky-400">curl</span> -O https://github.com/mannasuman134/portgrid/releases/download/v1.2.3/portgrid-enterprise-offline.tar.gz
+
+<span class="text-slate-500"># 2. Transfer tarball to the air-gapped machine via approved medium</span>
+<span class="text-slate-500"># 3. Extract and load all pinned immutable container images into local Docker cache</span>
+<span class="text-sky-400">tar</span> -xzf portgrid-enterprise-offline.tar.gz
+<span class="text-sky-400">cd</span> portgrid-enterprise-offline
+<span class="text-sky-400">./load-images.sh</span>
+
+<span class="text-slate-500"># 4. Launch with internal registry mirroring enabled</span>
+<span class="text-sky-400">./portgrid</span> up --offline --vault-key /secure/vault.key</pre>
+          </div>
+        </section>
+
+        <!-- 7. VERIFICATION -->
+        <section id="verification" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">7</span>
+            <span>Health &amp; Diagnostics Verification</span>
+          </h2>
+          <p class="text-sm text-slate-300">
+            Verify the orchestrator is correctly connected to your Docker daemon and that all cryptographic components are initialized:
+          </p>
+          <div class="glass-card rounded-xl p-4 border border-white/[0.08] font-mono text-xs">
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-slate-500"># Run automated health and prerequisite checks</span>
+<span class="text-sky-400">portgrid</span> doctor
+
+<span class="text-slate-400">Output:</span>
+[CHECK] Docker Daemon Connectivity: CONNECTED (API v1.45)
+[CHECK] Host Socket /var/run/docker.sock: READ/WRITE PERMITTED
+[CHECK] Network Bridge 'portgrid-network': CREATED (172.28.0.0/16)
+[CHECK] Secret Enclave (FIPS 140-2 AES-256): INITIALIZED
+[CHECK] Merkle Audit Ledger: VERIFIED (Root: e3b0c44298fc1c149afbf4c8996fb924)
+[CHECK] Web Console UI: READY ON http://localhost:3000</pre>
+          </div>
+        </section>
+
+        <!-- 8. TROUBLESHOOTING -->
+        <section id="troubleshooting" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs flex items-center justify-center">8</span>
+            <span>Troubleshooting &amp; Common Questions</span>
+          </h2>
+          
+          <div class="space-y-3">
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <h3 class="text-xs font-mono font-bold text-amber-400 mb-1">ISSUE: Cannot connect to Docker daemon</h3>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                Occurs if Docker Desktop or OrbStack is not running, or if permissions on /var/run/docker.sock are restricted to root.
+              </p>
+              <div class="p-2.5 rounded bg-black/40 font-mono text-[11px] text-slate-300">
+                sudo usermod -aG docker $USER &amp;&amp; newgrp docker
+              </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <h3 class="text-xs font-mono font-bold text-amber-400 mb-1">ISSUE: Port 3000 or 4000 already in use</h3>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                You can specify alternative port bindings using the CLI flags or environment variables:
+              </p>
+              <div class="p-2.5 rounded bg-black/40 font-mono text-[11px] text-slate-300">
+                portgrid up --ui-port 3030 --api-port 4040
+              </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <h3 class="text-xs font-mono font-bold text-amber-400 mb-1">ISSUE: Pull failures on corporate TLS proxy</h3>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                Configure PortGrid to use an internal Artifactory or Harbor image registry mirror:
+              </p>
+              <div class="p-2.5 rounded bg-black/40 font-mono text-[11px] text-slate-300">
+                PORTGRID_REGISTRY_MIRROR=harbor.internal.corp:5000 portgrid up
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="pt-8 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <a href="index.html" class="text-slate-400 hover:text-white flex items-center space-x-1.5 transition-colors">
+            <span>&lt;-</span>
+            <span>Documentation Overview</span>
+          </a>
+          <a href="blueprints.html" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1.5 transition-colors">
+            <span>Service Blueprints</span>
+            <span>-&gt;</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#05070f] mt-20 py-8 relative z-10 text-xs text-slate-500 text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      PortGrid is open source software licensed under Apache 2.0. Built for zero-friction local cloud orchestration.
+    </div>
+  </footer>
+
+</body>
+</html>

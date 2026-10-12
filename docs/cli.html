@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI Command Reference - PortGrid Documentation</title>
+  <meta name="description" content="Complete command line reference manual for PortGrid CLI: up, down, ps, deploy, logs, audit, vault, and doctor.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-35 z-0"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/90 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-6">
+        <a href="../index.html" class="flex items-center space-x-3 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_10px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+            <span class="text-[10px] font-mono text-slate-400">/ docs</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="../index.html" class="hover:text-white transition-colors">Home</a>
+        <a href="index.html" class="hover:text-white transition-colors">Overview</a>
+        <a href="installation.html" class="hover:text-white transition-colors">Installation</a>
+        <a href="blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="security.html" class="hover:text-white transition-colors">Security</a>
+        <a href="cli.html" class="text-sky-400 font-semibold border-b border-sky-400 pb-0.5">CLI Reference</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <!-- SIDEBAR -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08]">
+            <h3 class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider mb-3">Documentation</h3>
+            <ul class="space-y-1.5 text-xs text-slate-400">
+              <li>
+                <a href="index.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Documentation Overview</span>
+                </a>
+              </li>
+              <li>
+                <a href="installation.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Installation Guide</span>
+                </a>
+              </li>
+              <li>
+                <a href="blueprints.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Service Blueprints</span>
+                </a>
+              </li>
+              <li>
+                <a href="security.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Security &amp; Governance</span>
+                </a>
+              </li>
+              <li>
+                <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20">
+                  <span>CLI Command Reference</span>
+                </a>
+              </li>
+            </ul>
+
+            <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Commands</h3>
+            <ul class="space-y-1 text-xs text-slate-400">
+              <li><a href="#up" class="hover:text-sky-300">portgrid up</a></li>
+              <li><a href="#down" class="hover:text-sky-300">portgrid down</a></li>
+              <li><a href="#ps" class="hover:text-sky-300">portgrid ps</a></li>
+              <li><a href="#deploy" class="hover:text-sky-300">portgrid deploy</a></li>
+              <li><a href="#logs" class="hover:text-sky-300">portgrid logs</a></li>
+              <li><a href="#audit" class="hover:text-sky-300">portgrid audit</a></li>
+              <li><a href="#doctor" class="hover:text-sky-300">portgrid doctor</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="lg:col-span-3 space-y-10">
+
+        <!-- TITLE SECTION -->
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-mono border border-amber-500/20 mb-4">
+            <span>PORTGRID COMMAND LINE INTERFACE</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">CLI Command Reference</h1>
+          <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
+            The <code class="text-sky-300 font-mono text-sm">portgrid</code> command line utility provides complete programmatic control over your local cloud environment, services, cryptographic secret vault, and audit verification.
+          </p>
+        </div>
+
+        <!-- COMMAND 1: UP -->
+        <section id="up" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-sky-400">$</span>
+              <span>portgrid up</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">PRIMARY LIFECYCLE</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Boots the background orchestrator daemon, binds the bridge network, initializes the FIPS secret vault, and opens the Web Management Console at <code class="text-sky-300 font-mono">http://localhost:3000</code>.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid up [--daemon] [--ui-port &lt;p&gt;] [--api-port &lt;p&gt;] [--vault-key &lt;path&gt;] [--offline]
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="font-semibold text-slate-300">Supported Flags:</div>
+            <ul class="space-y-1.5 text-slate-400 font-mono text-[11px]">
+              <li><code class="text-sky-300">--daemon, -d</code> : Run orchestrator in background without keeping shell process open.</li>
+              <li><code class="text-sky-300">--ui-port &lt;number&gt;</code> : Override default Web Console port (default: 3000).</li>
+              <li><code class="text-sky-300">--api-port &lt;number&gt;</code> : Override daemon API port (default: 4000).</li>
+              <li><code class="text-sky-300">--offline</code> : Disallow any internet pulls; enforce strictly cached or air-gapped images.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- COMMAND 2: DOWN -->
+        <section id="down" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-rose-400">$</span>
+              <span>portgrid down</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">TEARDOWN</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Gracefully terminates all active blueprint containers, frees ephemeral network ports, and saves current configuration state. Data volumes are preserved by default.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid down [--purge] [--dry-run] [--force]
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="font-semibold text-slate-300">Supported Flags:</div>
+            <ul class="space-y-1.5 text-slate-400 font-mono text-[11px]">
+              <li><code class="text-rose-400">--purge</code> : Permanently crypto-shred named data volumes and wipe container state.</li>
+              <li><code class="text-sky-300">--dry-run</code> : Simulate teardown steps and display which containers and volumes would be affected.</li>
+              <li><code class="text-sky-300">--force</code> : Terminate containers immediately without waiting for graceful SIGTERM timeout.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- COMMAND 3: PS -->
+        <section id="ps" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-emerald-400">$</span>
+              <span>portgrid ps</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">STATUS &amp; TELEMETRY</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Lists all provisioned services, container states, allocated host ports, companion web interfaces, and runtime memory consumption.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid ps [--json] [--watch]
+          </div>
+        </section>
+
+        <!-- COMMAND 4: DEPLOY -->
+        <section id="deploy" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-purple-400">$</span>
+              <span>portgrid deploy &lt;service-id&gt;</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">PROVISIONING</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Instantiates a specific blueprint from the service catalog. Performs automated port collision avoidance and mounts companion management UIs.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid deploy postgres-pgadmin --with-ui
+          </div>
+        </section>
+
+        <!-- COMMAND 5: AUDIT -->
+        <section id="audit" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-amber-400">$</span>
+              <span>portgrid audit verify</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">CRYPTOGRAPHIC PROOF</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Validates the complete SHA-256 Merkle chain from genesis block to current head. Reports any detected log tampering or parent hash corruption.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid audit verify [--chain] [--export-json &lt;output.json&gt;]
+          </div>
+        </section>
+
+        <!-- COMMAND 6: DOCTOR -->
+        <section id="doctor" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-cyan-400">$</span>
+              <span>portgrid doctor</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">DIAGNOSTICS</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Performs comprehensive health checks across Docker socket connectivity, permissions, port availability, and network bridge health.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid doctor
+          </div>
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="pt-8 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <a href="security.html" class="text-slate-400 hover:text-white flex items-center space-x-1.5 transition-colors">
+            <span>&lt;-</span>
+            <span>Security Architecture</span>
+          </a>
+          <a href="../index.html" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1.5 transition-colors">
+            <span>Home Landing Page</span>
+            <span>-&gt;</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#05070f] mt-20 py-8 relative z-10 text-xs text-slate-500 text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      PortGrid is open source software licensed under Apache 2.0. Built for zero-friction local cloud orchestration.
+    </div>
+  </footer>
+
+</body>
+</html>

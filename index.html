@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PortGrid: Deterministic Local Cloud Services &amp; Developer Platform</title>
+  <meta name="description" content="Open source deterministic local cloud orchestrator. Run production-matched databases, caches, message queues, and companion admin consoles with zero port conflicts, FIPS 140-2 encryption, and SHA-256 Merkle audit ledgers.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .glow-radial {
+      background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.18) 0%, transparent 65%);
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND AMBIENT GLOW -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-40 z-0"></div>
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[650px] pointer-events-none glow-radial z-0"></div>
+
+  <!-- NAVIGATION HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/85 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Brand Logo -->
+      <a href="index.html" class="flex items-center space-x-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_12px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+          <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">v1.2.3</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center space-x-7 text-xs font-medium text-slate-300">
+        <a href="#features" class="hover:text-white transition-colors">Features</a>
+        <a href="#blueprints" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="#architecture" class="hover:text-white transition-colors">Security</a>
+        <a href="#quickstart" class="hover:text-white transition-colors">Quickstart</a>
+        <a href="docs/index.html" class="hover:text-white transition-colors">Documentation</a>
+      </nav>
+
+      <!-- Right Action Links -->
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 hover:text-white text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>Star</span>
+        </a>
+
+        <a href="#quickstart" class="px-3.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold transition-all shadow-[0_2px_12px_rgba(14,165,233,0.3)] active:scale-95">
+          Install PortGrid
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="relative z-10">
+
+    <!-- 1. HERO SECTION -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16 text-center space-y-8">
+      <!-- Badge -->
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-xs font-semibold text-sky-300 shadow-inner">
+        <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+        <span>Open Source Developer Cloud Runtime</span>
+      </div>
+
+      <!-- Headline -->
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] max-w-5xl mx-auto">
+        Local Cloud Services with <br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-400">
+          Deterministic Enclaves
+        </span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
+        Run production-matched databases, caches, streaming brokers, and administrative consoles on local loopback with zero port collisions, FIPS 140-2 secrets encryption, and SHA-256 Merkle audit ledgers.
+      </p>
+
+      <!-- Terminal Install Block (One-Liner) -->
+      <div class="max-w-2xl mx-auto bg-black/60 border border-white/[0.1] rounded-2xl p-4 shadow-2xl text-left">
+        <div class="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-3">
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+            <span class="ml-2 font-mono text-xs text-slate-400">terminal</span>
+          </div>
+
+          <span class="text-[11px] font-mono text-slate-400">Node.js 18+ or Docker Engine</span>
+        </div>
+
+        <div class="flex items-center justify-between bg-black/40 px-3 py-2.5 rounded-xl border border-white/[0.06]">
+          <div class="font-mono text-xs sm:text-sm text-sky-300 flex items-center space-x-2 truncate mr-3">
+            <span class="text-slate-500 select-none">$</span>
+            <span id="installCmd">npm install -g portgrid &amp;&amp; portgrid up</span>
+          </div>
+
+          <button onclick="copyCommand('installCmd', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-slate-200 text-xs font-semibold flex items-center space-x-1 transition-all active:scale-95 shrink-0">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+        <a href="#quickstart" class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-[0_4px_20px_rgba(14,165,233,0.35)] transition-all active:scale-95 flex items-center space-x-2">
+          <span>Read Installation Guide</span>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+
+        <a href="docs/index.html" class="px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold text-sm border border-white/[0.1] transition-all active:scale-95">
+          Explore Architecture Spec
+        </a>
+      </div>
+
+      <!-- Live Telemetry Metric Strip -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6">
+        <div class="glass-card p-4 rounded-xl text-left">
+          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Port Collisions</span>
+          <span class="text-xl sm:text-2xl font-black font-mono text-emerald-400 mt-1 block">0 Guaranteed</span>
+          <span class="text-[11px] text-slate-400 mt-0.5 block">Automated kernel probing</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl text-left">
+          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Loopback Latency</span>
+          <span class="text-xl sm:text-2xl font-black font-mono text-sky-400 mt-1 block">&lt; 0.5 ms</span>
+          <span class="text-[11px] text-slate-400 mt-0.5 block">Strict 127.0.0.1 bridge</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl text-left">
+          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Storage Vault</span>
+          <span class="text-xl sm:text-2xl font-black font-mono text-cyan-400 mt-1 block">AES-256-GCM</span>
+          <span class="text-[11px] text-slate-400 mt-0.5 block">FIPS 140-2 envelope</span>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl text-left">
+          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Audit Trail</span>
+          <span class="text-xl sm:text-2xl font-black font-mono text-emerald-300 mt-1 block">SHA-256 Merkle</span>
+          <span class="text-[11px] text-slate-400 mt-0.5 block">Four-Eyes Dual Control</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PRODUCT SHOWCASE / INTERACTIVE MEDIA FRAME -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="glass-card rounded-2xl overflow-hidden border border-white/[0.12] shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
+        <!-- Mockup Top Window Chrome -->
+        <div class="bg-[#0b101c] px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+            <span class="ml-2 font-mono text-xs text-slate-400 font-medium">PortGrid Control Center: http://localhost:3000</span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              Cluster Online
+            </span>
+          </div>
+        </div>
+
+        <!-- Interactive Media Viewer -->
+        <div class="p-2 sm:p-4 bg-[#080d1a]">
+          <img id="mainMediaDisplay" src="assets/images/product.gif" alt="PortGrid Interactive Control Center Demo" class="w-full h-auto rounded-xl border border-white/[0.08] shadow-2xl object-cover">
+        </div>
+
+        <!-- View Switcher Tabs -->
+        <div class="bg-[#0b101c] px-4 py-3 border-t border-white/[0.08] flex flex-wrap items-center justify-center gap-2 text-xs">
+          <button onclick="switchMedia('assets/images/product.gif', this)" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30 media-btn active">
+            Full Product Tour
+          </button>
+          <button onclick="switchMedia('assets/images/dashboard-overview.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
+            Runtime Overview
+          </button>
+          <button onclick="switchMedia('assets/images/service-catalog.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
+            Service Catalog
+          </button>
+          <button onclick="switchMedia('assets/images/audit-governance.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
+            Merkle Audit Ledger
+          </button>
+          <button onclick="switchMedia('assets/images/terminal-logs.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
+            Live Streaming Logs
+          </button>
+          <button onclick="switchMedia('assets/images/deployment-chamber.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
+            3D Enclave Chamber
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SERVICE BLUEPRINTS SHOWCASE -->
+    <section id="blueprints" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest block mb-2">Supported Infrastructure</span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">One-Click Service Blueprints</h2>
+          <p class="text-sm text-slate-400 mt-2 max-w-xl">
+            Pre-configured production engines paired with zero-login administrative consoles, automated credential provisioning, and persistent encrypted volumes.
+          </p>
+        </div>
+
+        <a href="docs/blueprints.html" class="inline-flex items-center space-x-2 text-xs font-semibold text-sky-400 hover:text-sky-300 transition-colors">
+          <span>View Detailed Connection Specs</span>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Grid of 6 Official + 2 Custom Blueprints -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- PostgreSQL -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">DATABASE</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :5432</span>
+            </div>
+            <h3 class="text-base font-bold text-white">PostgreSQL 16</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Enterprise ACID relational database with paired pgAdmin 4 web console.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">pgAdmin 4 (:5050)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">postgres:16-alpine</span></div>
+          </div>
+        </div>
+
+        <!-- Redis -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">CACHE</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :6379</span>
+            </div>
+            <h3 class="text-base font-bold text-white">Redis 7</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">In-memory data structure store with instant Redis Commander web UI.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Redis Commander (:8081)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">redis:7-alpine</span></div>
+          </div>
+        </div>
+
+        <!-- Apache Kafka -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">STREAMING</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :9092</span>
+            </div>
+            <h3 class="text-base font-bold text-white">Apache Kafka (KRaft)</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Distributed event streaming broker (no Zookeeper) with Provectus UI.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Kafka UI (:8080)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">apache/kafka:3.7.0</span></div>
+          </div>
+        </div>
+
+        <!-- Keycloak -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">IDENTITY</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :8085</span>
+            </div>
+            <h3 class="text-base font-bold text-white">Keycloak 24</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Enterprise OpenID Connect, OAuth2, and SAML identity management console.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Admin Console (:8085)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">keycloak:24.0.2</span></div>
+          </div>
+        </div>
+
+        <!-- RabbitMQ -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-semibold">MESSAGE BROKER</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :5672</span>
+            </div>
+            <h3 class="text-base font-bold text-white">RabbitMQ 3.13</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Robust AMQP message queue broker with real-time web management.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Management UI (:15672)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">rabbitmq:3.13-mgmt</span></div>
+          </div>
+        </div>
+
+        <!-- Jenkins CI -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">DEVOPS CI/CD</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :8090</span>
+            </div>
+            <h3 class="text-base font-bold text-white">Jenkins CI/CD</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Automation engine with native pipeline execution and web dashboard.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Jenkins Web (:8090)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">jenkins:lts-jdk17</span></div>
+          </div>
+        </div>
+
+        <!-- MongoDB -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">DOCUMENT NO-SQL</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :27017</span>
+            </div>
+            <h3 class="text-base font-bold text-white">MongoDB 7</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">High-performance document database with visual Mongo Express manager.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Mongo Express (:8081)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">mongo:7</span></div>
+          </div>
+        </div>
+
+        <!-- ClickHouse -->
+        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-semibold">OLAP ANALYTICS</span>
+              <span class="text-[10px] font-mono text-slate-400">Port :8123</span>
+            </div>
+            <h3 class="text-base font-bold text-white">ClickHouse OLAP</h3>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Column-oriented analytical engine with sub-second real-time queries.</p>
+          </div>
+          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
+            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Native HTTP (:8123)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">clickhouse-server</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CORE FEATURES (BENTO GRID) -->
+    <section id="features" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <div class="text-center space-y-3">
+        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Built for Serious Engineering Teams</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Why Developers Choose PortGrid</h2>
+        <p class="text-sm text-slate-400 max-w-2xl mx-auto">
+          Unlike brittle docker-compose files and heavy VMs, PortGrid treats your workstation as an isolated, cryptographically auditable local cloud.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white">Deterministic Port Allocation</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Never see "address already in use" again. PortGrid probes sockets before binding and deterministically increments ports without breaking connection strings.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white">Strict 127.0.0.1 Enclaves</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Containers bind strictly to local loopback sockets. Zero external network exposure, eliminating accidental exposure over LAN, Wi-Fi, or public cloud bridges.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white">FIPS 140-2 Entropy Secrets</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Generates high-entropy AES-256-GCM passwords per instance. Secrets are sealed into an encrypted local vault and formatted into ready-to-copy .env files.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white">SHA-256 Merkle Audit Trail</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Every container spawn, credential generation, or volume purge writes an immutable cryptographic block to a tamper-evident audit chain with verifiable parent hashes.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white">NIST SP 800-88 Crypto-Shred</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            De-provisioning memory buffers are zeroed (`Buffer.fill(0)`) and data volume keys shredded, meeting Tier-1 fintech compliance and media sanitization rules.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white">Four-Eyes Dual Control (Maker-Checker)</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            In strict banking profile mode, destructive container tear-downs require a secondary authorized reviewer before volume deletion is executed.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. QUICKSTART WALKTHROUGH -->
+    <section id="quickstart" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
+      <div class="text-center space-y-3">
+        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Get Started in 3 Minutes</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Installation &amp; First Run</h2>
+        <p class="text-sm text-slate-400 max-w-xl mx-auto">
+          From zero to a running PostgreSQL 16 cluster with pgAdmin in three simple steps.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Step 1 -->
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">Step 1</span>
+            <h3 class="text-base font-bold text-white">Install PortGrid CLI</h3>
+            <p class="text-xs text-slate-400">Install globally via NPM or execute on-demand with npx.</p>
+          </div>
+
+          <div class="bg-black/60 p-3 rounded-xl border border-white/[0.08] font-mono text-xs text-sky-300">
+            <code>npm install -g portgrid</code>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Step 2</span>
+            <h3 class="text-base font-bold text-white">Boot Cluster Enclave</h3>
+            <p class="text-xs text-slate-400">Starts daemon and opens web control center on port 3000.</p>
+          </div>
+
+          <div class="bg-black/60 p-3 rounded-xl border border-white/[0.08] font-mono text-xs text-emerald-300">
+            <code>portgrid up</code>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">Step 3</span>
+            <h3 class="text-base font-bold text-white">Deploy &amp; Connect</h3>
+            <p class="text-xs text-slate-400">Launch any blueprint via terminal or the visual dashboard.</p>
+          </div>
+
+          <div class="bg-black/60 p-3 rounded-xl border border-white/[0.08] font-mono text-xs text-cyan-300">
+            <code>portgrid deploy postgresql</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. CODE CONNECTION SNIPPETS -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="glass-card rounded-2xl p-6 sm:p-8 border border-white/[0.1] space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-bold text-white">Direct Application Integration</h3>
+            <p class="text-xs text-slate-400 mt-1">Copy connection URLs or auto-injected environment snippets directly into your projects.</p>
+          </div>
+
+          <!-- Language Tabs -->
+          <div class="flex items-center space-x-1.5 bg-black/40 p-1 rounded-xl border border-white/[0.06] text-xs font-mono">
+            <button onclick="switchCode('env', this)" class="code-tab px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30">.env</button>
+            <button onclick="switchCode('node', this)" class="code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Node.js</button>
+            <button onclick="switchCode('python', this)" class="code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Python</button>
+            <button onclick="switchCode('go', this)" class="code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Go</button>
+          </div>
+        </div>
+
+        <div class="bg-black/80 rounded-xl p-4 border border-white/[0.06] overflow-x-auto code-scroll font-mono text-xs text-slate-200">
+          <pre id="codeSnippet"><code># Auto-generated by PortGrid FIPS 140-2 Entropy Engine
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=a7f82c499b1a03e481f9b0c7
+DB_NAME=devdb
+DATABASE_URL=postgresql://postgres:a7f82c499b1a03e481f9b0c7@127.0.0.1:5432/devdb
+
+REDIS_URL=redis://:e830bf91ac2408891d4e@127.0.0.1:6379
+KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. COMPARISON TABLE -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-8">
+      <div class="text-center space-y-3">
+        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Industry Comparison</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">How PortGrid Compares</h2>
+      </div>
+
+      <div class="glass-card rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-white/[0.03] border-b border-white/[0.08] text-slate-300 font-mono uppercase text-[11px]">
+              <tr>
+                <th class="py-3.5 px-5 font-semibold">Capability</th>
+                <th class="py-3.5 px-5 font-bold text-sky-400 bg-sky-500/10">PortGrid</th>
+                <th class="py-3.5 px-5 font-semibold">Docker Compose</th>
+                <th class="py-3.5 px-5 font-semibold">LocalStack</th>
+                <th class="py-3.5 px-5 font-semibold">Minikube</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/[0.05] text-slate-300">
+              <tr>
+                <td class="py-3 px-5 font-medium text-white">Dynamic Port Conflict Resolution</td>
+                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Autonomous</td>
+                <td class="py-3 px-5 text-rose-400">Fails (Port Collision)</td>
+                <td class="py-3 px-5 text-slate-400">Limited (Mock only)</td>
+                <td class="py-3 px-5 text-amber-400">Manual NodePort</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-5 font-medium text-white">Paired Zero-Login Web Consoles</td>
+                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Built-in (1-Click)</td>
+                <td class="py-3 px-5 text-rose-400">Manual YAML wiring</td>
+                <td class="py-3 px-5 text-rose-400">Paid Pro tier</td>
+                <td class="py-3 px-5 text-rose-400">Manual Port-Forward</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-5 font-medium text-white">FIPS 140-2 AES-256 Vault</td>
+                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Hardware Sealed</td>
+                <td class="py-3 px-5 text-rose-400">Plaintext .env</td>
+                <td class="py-3 px-5 text-rose-400">Mock only</td>
+                <td class="py-3 px-5 text-amber-400">Base64 secrets</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-5 font-medium text-white">SHA-256 Merkle Audit Ledger</td>
+                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Tamper-Evident</td>
+                <td class="py-3 px-5 text-rose-400">No audit chain</td>
+                <td class="py-3 px-5 text-rose-400">No audit chain</td>
+                <td class="py-3 px-5 text-amber-400">Kubernetes Events</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-5 font-medium text-white">RAM &amp; CPU Footprint</td>
+                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">&lt; 150 MB (Go/Node)</td>
+                <td class="py-3 px-5 text-emerald-400">Low</td>
+                <td class="py-3 px-5 text-amber-400">Medium (Python JVM)</td>
+                <td class="py-3 px-5 text-rose-400">Very High (4 GB+ VM)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. FREQUENTLY ASKED QUESTIONS -->
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-10">
+      <div class="text-center space-y-3">
+        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Common Questions</span>
+        <h2 class="text-3xl font-extrabold text-white tracking-tight">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="space-y-4">
+        <details class="glass-card rounded-xl p-4 group cursor-pointer">
+          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
+            <span>How does PortGrid avoid port collisions automatically?</span>
+            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
+          </summary>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+            When you deploy a blueprint, PortGrid verifies socket availability at the kernel level via standard TCP loopback handshake. If the default port (e.g. 5432) is occupied by a native PostgreSQL instance or colleague container, PortGrid deterministically increments the port (e.g. 5433), updates all dependent companion web UIs, and returns updated connection URIs.
+          </p>
+        </details>
+
+        <details class="glass-card rounded-xl p-4 group cursor-pointer">
+          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
+            <span>Does PortGrid send any data to external cloud servers?</span>
+            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
+          </summary>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+            No. PortGrid is 100% self-hosted and air-gapped ready. All containers bind strictly to 127.0.0.1. PortGrid has zero external telemetry, zero phoning home, and requires no cloud subscriptions.
+          </p>
+        </details>
+
+        <details class="glass-card rounded-xl p-4 group cursor-pointer">
+          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
+            <span>Can I onboard custom Docker images or private registries?</span>
+            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
+          </summary>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+            Yes. The built-in Service Catalog features an "Onboard Custom Service" workflow designer. You can specify any Docker image from Docker Hub, Quay.io, GitHub Container Registry (ghcr.io), or private enterprise registries, define environment variables, persistent mounts, and optional web UIs.
+          </p>
+        </details>
+
+        <details class="glass-card rounded-xl p-4 group cursor-pointer">
+          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
+            <span>Is PortGrid suitable for commercial, banking, or defense projects?</span>
+            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
+          </summary>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+            Yes. PortGrid was engineered specifically to pass strict fintech cybersecurity baselines. It implements strict 127.0.0.1 loopback enclaves, FIPS 140-2 AES-256 entropy keys, NIST SP 800-88 cryptographic shredding, and optional Four-Eyes dual control for container teardowns.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- 9. FINAL CALL TO ACTION -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-6">
+      <div class="glass-card rounded-3xl p-8 sm:p-14 border border-sky-500/20 shadow-[0_10px_60px_rgba(14,165,233,0.15)] space-y-6 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-sky-500/10 via-transparent to-emerald-500/10 pointer-events-none"></div>
+
+        <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight">
+          Ready to Upgrade Your Local Development Stack?
+        </h2>
+
+        <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          Install the PortGrid CLI globally in 10 seconds. Free, open source, and deterministic.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-lg active:scale-95 transition-all">
+            Star on GitHub
+          </a>
+          <a href="docs/installation.html" class="px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold text-sm border border-white/[0.1] active:scale-95 transition-all">
+            Read Full Install Guide
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#040710] py-12 relative z-10 text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center space-x-3">
+        <div class="w-6 h-6 rounded-lg bg-sky-500 flex items-center justify-center text-slate-950 font-bold">P</div>
+        <span class="text-slate-200 font-semibold text-sm">PortGrid Platform</span>
+        <span class="text-slate-600">|</span>
+        <span>Apache 2.0 Open Source License</span>
+      </div>
+
+      <div class="flex items-center space-x-6">
+        <a href="docs/installation.html" class="hover:text-white transition-colors">Install</a>
+        <a href="docs/blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="docs/security.html" class="hover:text-white transition-colors">Security</a>
+        <a href="https://github.com/mannasuman134/portgrid" class="hover:text-white transition-colors">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- INTERACTIVE SCRIPTS -->
+  <script>
+    function copyCommand(elementId, btn) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span>Copied!</span>';
+        btn.classList.add('text-emerald-300');
+        setTimeout(() => {
+          btn.innerHTML = originalHtml;
+          btn.classList.remove('text-emerald-300');
+        }, 2000);
+      });
+    }
+
+    function switchMedia(src, btn) {
+      document.getElementById('mainMediaDisplay').src = src;
+      document.querySelectorAll('.media-btn').forEach(b => {
+        b.className = 'px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn';
+      });
+      btn.className = 'px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30 media-btn active';
+    }
+
+    const SNIPPETS = {
+      env: `# Auto-generated by PortGrid FIPS 140-2 Entropy Engine
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=a7f82c499b1a03e481f9b0c7
+DB_NAME=devdb
+DATABASE_URL=postgresql://postgres:a7f82c499b1a03e481f9b0c7@127.0.0.1:5432/devdb
+
+REDIS_URL=redis://:e830bf91ac2408891d4e@127.0.0.1:6379
+KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092`,
+
+      node: `import { Pool } from 'pg';
+import Redis from 'ioredis';
+
+// Connect to PortGrid Loopback Enclaves
+export const db = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:pass@127.0.0.1:5432/devdb'
+});
+
+export const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');`,
+
+      python: `import os
+import psycopg2
+import redis
+
+# Connect to PortGrid Loopback Enclaves
+conn = psycopg2.connect(
+    dsn=os.getenv("DATABASE_URL", "postgresql://postgres:pass@127.0.0.1:5432/devdb")
+)
+
+r = redis.from_url(os.getenv("REDIS_URL", "redis://127.0.0.1:6379"))`,
+
+      go: `package main
+
+import (
+  "database/sql"
+  _ "github.com/lib/pq"
+)
+
+func main() {
+  connStr := "postgresql://postgres:pass@127.0.0.1:5432/devdb?sslmode=disable"
+  db, err := sql.Open("postgres", connStr)
+  if err != nil {
+    panic(err)
+  }
+  defer db.Close()
+}`
+    };
+
+    function switchCode(lang, btn) {
+      document.querySelector('#codeSnippet code').innerText = SNIPPETS[lang];
+      document.querySelectorAll('.code-tab').forEach(t => {
+        t.className = 'code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white';
+      });
+      btn.className = 'code-tab px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30';
+    }
+  </script>
+</body>
+</html>

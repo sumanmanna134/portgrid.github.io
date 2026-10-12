@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security &amp; Governance Architecture - PortGrid Documentation</title>
+  <meta name="description" content="Technical whitepaper on PortGrid security: SHA-256 Merkle audit chains, FIPS 140-2 secret enclaves, Four-Eyes maker-checker governance, and NIST SP 800-88 sanitization.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-35 z-0"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/90 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-6">
+        <a href="../index.html" class="flex items-center space-x-3 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_10px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+            <span class="text-[10px] font-mono text-slate-400">/ docs</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="../index.html" class="hover:text-white transition-colors">Home</a>
+        <a href="index.html" class="hover:text-white transition-colors">Overview</a>
+        <a href="installation.html" class="hover:text-white transition-colors">Installation</a>
+        <a href="blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="security.html" class="text-sky-400 font-semibold border-b border-sky-400 pb-0.5">Security</a>
+        <a href="cli.html" class="hover:text-white transition-colors">CLI Reference</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <!-- SIDEBAR -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08]">
+            <h3 class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider mb-3">Documentation</h3>
+            <ul class="space-y-1.5 text-xs text-slate-400">
+              <li>
+                <a href="index.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Documentation Overview</span>
+                </a>
+              </li>
+              <li>
+                <a href="installation.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Installation Guide</span>
+                </a>
+              </li>
+              <li>
+                <a href="blueprints.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Service Blueprints</span>
+                </a>
+              </li>
+              <li>
+                <a href="security.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20">
+                  <span>Security &amp; Governance</span>
+                </a>
+              </li>
+              <li>
+                <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>CLI Command Reference</span>
+                </a>
+              </li>
+            </ul>
+
+            <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">On This Page</h3>
+            <ul class="space-y-1 text-xs text-slate-400">
+              <li><a href="#merkle" class="hover:text-sky-300">1. Merkle Audit Ledger</a></li>
+              <li><a href="#four-eyes" class="hover:text-sky-300">2. Four-Eyes Governance</a></li>
+              <li><a href="#vault" class="hover:text-sky-300">3. FIPS 140-2 Secret Enclave</a></li>
+              <li><a href="#crypto-shred" class="hover:text-sky-300">4. NIST SP 800-88 Shredding</a></li>
+              <li><a href="#network" class="hover:text-sky-300">5. Isolated Network Enclaves</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="lg:col-span-3 space-y-12">
+
+        <!-- TITLE SECTION -->
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/20 mb-4">
+            <span>FINTECH-GRADE SECURITY ARCHITECTURE</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">Security, Cryptography &amp; Governance</h1>
+          <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
+            In regulated environments (banking, healthcare, defence, fintech), local environments are frequent vectors for data exfiltration and unverified state mutations. PortGrid enforces mathematical proof and dual-control governance at every layer.
+          </p>
+        </div>
+
+        <!-- 1. MERKLE AUDIT LEDGER -->
+        <section id="merkle" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">1</span>
+            <span>Cryptographic Merkle Tree Audit Ledger</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Every lifecycle mutation (service spawn, configuration mutation, volume mount, teardown) generates a structured event block. This block contains the action timestamp, invoking user identity, machine hardware fingerprint, and the cryptographic parent hash:
+          </p>
+          
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08] font-mono text-xs">
+            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-3">
+              LEDGER BLOCK STRUCTURE (JSON-CANONICAL)
+            </div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto">{
+  "index": 142,
+  "timestamp": "2026-10-12T11:45:00.000Z",
+  "action": "SERVICE_DEPLOYED",
+  "service_id": "postgres-pgadmin",
+  "allocated_ports": [5432, 5050],
+  "author": "suman.manna@enterprise.corp",
+  "parent_hash": "a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0",
+  "state_hash": "e93a74b1c85309d9f123456789abcdef0123456789abcdef0123456789abcdef",
+  "merkle_root": "7b8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b"
+}</pre>
+          </div>
+
+          <p class="text-xs text-slate-400">
+            If any local log file is modified, truncated, or tampered with, parent hash recalculation immediately detects the mismatch and locks down orchestrator operations.
+          </p>
+        </section>
+
+        <!-- 2. FOUR-EYES GOVERNANCE -->
+        <section id="four-eyes" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">2</span>
+            <span>Four-Eyes Maker-Checker Policy</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Accidental database drops and volume purges cost organizations countless hours of engineering downtime. PortGrid includes an optional Four-Eyes approval mode:
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-sky-400 mb-1">MAKER (INITIATOR)</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Developer requests high-risk operation: volume purge, production replication pull, or credential rotation. The request is placed in pending approval holding.
+              </p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-emerald-400 mb-1">CHECKER (APPROVER)</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Team lead or peer enters cryptographically signed approval key to execute the queued task. Both identities are sealed permanently in the Merkle ledger.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. FIPS VAULT -->
+        <section id="vault" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">3</span>
+            <span>FIPS 140-2 Encrypted Secret Enclave</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Passwords, TLS certificates, and connection URIs are never written in plain text to Docker environment variables or local disk configuration files:
+          </p>
+          <ul class="space-y-2 text-xs text-slate-300 font-mono">
+            <li class="flex items-center space-x-2">
+              <span class="text-emerald-400">[OK]</span>
+              <span>AES-256-GCM authenticated symmetric encryption with 96-bit initialization vectors</span>
+            </li>
+            <li class="flex items-center space-x-2">
+              <span class="text-emerald-400">[OK]</span>
+              <span>PBKDF2 key derivation using 600,000 HMAC-SHA512 iterations</span>
+            </li>
+            <li class="flex items-center space-x-2">
+              <span class="text-emerald-400">[OK]</span>
+              <span>Ephemeral in-memory injection directly into container runtime namespaces</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- 4. NIST SP 800-88 -->
+        <section id="crypto-shred" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">4</span>
+            <span>NIST SP 800-88 Cryptographic Shredding</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            When a developer executes <code class="text-rose-400 font-mono text-xs">portgrid down --purge</code>, PortGrid executes a cryptographic zeroing routine. The ephemeral encryption key protecting the storage volume is overwritten with random entropy before the volume unmount call completes, making deleted databases mathematically unrecoverable.
+          </p>
+        </section>
+
+        <!-- 5. NETWORK ISOLATION -->
+        <section id="network" class="space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">5</span>
+            <span>Isolated Network Enclaves</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Services run inside a dedicated user-defined Docker bridge network (<code class="text-sky-300 font-mono text-xs">portgrid-network</code>). Inter-container communication occurs via internal DNS aliases without exposing unneeded ports to external network interfaces (<code class="text-sky-300 font-mono text-xs">0.0.0.0</code>). All host bindings are strictly bound to <code class="text-sky-300 font-mono text-xs">127.0.0.1</code> by default.
+          </p>
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="pt-8 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <a href="blueprints.html" class="text-slate-400 hover:text-white flex items-center space-x-1.5 transition-colors">
+            <span>&lt;-</span>
+            <span>Service Blueprints</span>
+          </a>
+          <a href="cli.html" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1.5 transition-colors">
+            <span>CLI Command Reference</span>
+            <span>-&gt;</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#05070f] mt-20 py-8 relative z-10 text-xs text-slate-500 text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      PortGrid is open source software licensed under Apache 2.0. Built for zero-friction local cloud orchestration.
+    </div>
+  </footer>
+
+</body>
+</html>

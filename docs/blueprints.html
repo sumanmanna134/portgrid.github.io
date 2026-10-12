@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Blueprints - PortGrid Documentation</title>
+  <meta name="description" content="Production-matched blueprints for PostgreSQL, Redis, Kafka, Keycloak, RabbitMQ, Jenkins, MongoDB, and ClickHouse with language connection snippets.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-35 z-0"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/90 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-6">
+        <a href="../index.html" class="flex items-center space-x-3 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_10px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+            <span class="text-[10px] font-mono text-slate-400">/ docs</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="../index.html" class="hover:text-white transition-colors">Home</a>
+        <a href="index.html" class="hover:text-white transition-colors">Overview</a>
+        <a href="installation.html" class="hover:text-white transition-colors">Installation</a>
+        <a href="blueprints.html" class="text-sky-400 font-semibold border-b border-sky-400 pb-0.5">Blueprints</a>
+        <a href="security.html" class="hover:text-white transition-colors">Security</a>
+        <a href="cli.html" class="hover:text-white transition-colors">CLI Reference</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <!-- SIDEBAR -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08]">
+            <h3 class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider mb-3">Documentation</h3>
+            <ul class="space-y-1.5 text-xs text-slate-400">
+              <li>
+                <a href="index.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Documentation Overview</span>
+                </a>
+              </li>
+              <li>
+                <a href="installation.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Installation Guide</span>
+                </a>
+              </li>
+              <li>
+                <a href="blueprints.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg bg-sky-500/10 text-sky-300 font-semibold border border-sky-500/20">
+                  <span>Service Blueprints</span>
+                </a>
+              </li>
+              <li>
+                <a href="security.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Security &amp; Governance</span>
+                </a>
+              </li>
+              <li>
+                <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>CLI Command Reference</span>
+                </a>
+              </li>
+            </ul>
+
+            <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Service Catalog</h3>
+            <ul class="space-y-1 text-xs text-slate-400">
+              <li><a href="#postgres" class="hover:text-sky-300">PostgreSQL 16 &amp; pgAdmin</a></li>
+              <li><a href="#redis" class="hover:text-sky-300">Redis 7.2 &amp; Insight</a></li>
+              <li><a href="#kafka" class="hover:text-sky-300">Apache Kafka &amp; AKHQ</a></li>
+              <li><a href="#keycloak" class="hover:text-sky-300">Keycloak 24 IAM</a></li>
+              <li><a href="#rabbitmq" class="hover:text-sky-300">RabbitMQ 3.13</a></li>
+              <li><a href="#jenkins" class="hover:text-sky-300">Jenkins Controller</a></li>
+              <li><a href="#mongodb" class="hover:text-sky-300">MongoDB 7.0 &amp; Express</a></li>
+              <li><a href="#clickhouse" class="hover:text-sky-300">ClickHouse OLAP</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="lg:col-span-3 space-y-12">
+
+        <!-- TITLE SECTION -->
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-mono border border-purple-500/20 mb-4">
+            <span>PORTGRID SERVICE BLUEPRINTS</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">Service Blueprints &amp; Code Snippets</h1>
+          <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
+            Each PortGrid blueprint pairs an enterprise-grade backend service with an authenticated companion management UI, pre-tuned memory limits, and automated volume persistence.
+          </p>
+        </div>
+
+        <!-- 1. POSTGRESQL -->
+        <section id="postgres" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-sky-400">BLUEPRINT ID: postgres-pgadmin</span>
+              <h2 class="text-xl font-bold text-white">PostgreSQL 16 + pgAdmin 4 + pgvector</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">Port 5432</span>
+              <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">UI Port 5050</span>
+            </div>
+          </div>
+          
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Full ACID relational database pre-loaded with the pgvector extension for LLM vector embeddings. The companion pgAdmin 4 console automatically binds with saved connection profiles.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">NODE.JS / TYPESCRIPT (PG POOL)</div>
+              <div class="glass-card rounded-xl p-3 border border-white/[0.08] font-mono text-[11px]">
+                <pre class="text-slate-200 code-scroll overflow-x-auto">import { Pool } from 'pg';
+
+const pool = new Pool({
+  host: 'localhost',
+  port: 5432,
+  user: 'portgrid',
+  password: 'vault_derived_secret',
+  database: 'portgrid_app',
+  max: 20,
+});</pre>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">SPRING BOOT (APPLICATION.YML)</div>
+              <div class="glass-card rounded-xl p-3 border border-white/[0.08] font-mono text-[11px]">
+                <pre class="text-slate-200 code-scroll overflow-x-auto">spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/portgrid_app
+    username: portgrid
+    password: ${PORTGRID_POSTGRES_PASS}
+    driver-class-name: org.postgresql.Driver</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 text-xs font-mono text-slate-400">
+            <span>CLI Deploy: </span>
+            <code class="text-sky-300">portgrid deploy postgres-pgadmin --with-ui</code>
+          </div>
+        </section>
+
+        <!-- 2. REDIS -->
+        <section id="redis" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-rose-400">BLUEPRINT ID: redis-stack-insight</span>
+              <h2 class="text-xl font-bold text-white">Redis 7.2 Stack + Redis Insight</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">Port 6379</span>
+              <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">UI Port 8081</span>
+            </div>
+          </div>
+          
+          <p class="text-xs text-slate-300 leading-relaxed">
+            In-memory cache and real-time streaming engine with JSON, Search, TimeSeries, and Probabilistic modules. Redis Insight provides a visual key browser and live stream telemetry.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">PYTHON (REDIS-PY)</div>
+              <div class="glass-card rounded-xl p-3 border border-white/[0.08] font-mono text-[11px]">
+                <pre class="text-slate-200 code-scroll overflow-x-auto">import redis
+
+r = redis.Redis(
+    host='localhost',
+    port=6379,
+    decode_responses=True
+)
+r.set('session:token', 'active', ex=3600)</pre>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">GO (GO-REDIS/V9)</div>
+              <div class="glass-card rounded-xl p-3 border border-white/[0.08] font-mono text-[11px]">
+                <pre class="text-slate-200 code-scroll overflow-x-auto">import "github.com/redis/go-redis/v9"
+
+rdb := redis.NewClient(&redis.Options{
+    Addr:     "localhost:6379",
+    Password: "",
+    DB:       0,
+})</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 text-xs font-mono text-slate-400">
+            <span>CLI Deploy: </span>
+            <code class="text-rose-300">portgrid deploy redis-stack-insight --with-ui</code>
+          </div>
+        </section>
+
+        <!-- 3. KAFKA -->
+        <section id="kafka" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-orange-400">BLUEPRINT ID: kafka-kraft-akhq</span>
+              <h2 class="text-xl font-bold text-white">Apache Kafka 3.7 (KRaft) + AKHQ Console</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-orange-500/10 text-orange-300 border border-orange-500/20">Port 9092</span>
+              <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">UI Port 8080</span>
+            </div>
+          </div>
+          
+          <p class="text-xs text-slate-300 leading-relaxed">
+            High-throughput event streaming architecture running modern KRaft consensus without ZooKeeper dependencies. AKHQ console displays consumer group lag, topic schemas, and live message tails.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">NODE.JS (KAFKAJS)</div>
+              <div class="glass-card rounded-xl p-3 border border-white/[0.08] font-mono text-[11px]">
+                <pre class="text-slate-200 code-scroll overflow-x-auto">const { Kafka } = require('kafkajs');
+
+const kafka = new Kafka({
+  clientId: 'order-service',
+  brokers: ['localhost:9092']
+});
+const producer = kafka.producer();</pre>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[11px] font-mono text-slate-400 mb-1">SPRING BOOT (APPLICATION.YML)</div>
+              <div class="glass-card rounded-xl p-3 border border-white/[0.08] font-mono text-[11px]">
+                <pre class="text-slate-200 code-scroll overflow-x-auto">spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: analytics-consumer
+      auto-offset-reset: earliest</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 text-xs font-mono text-slate-400">
+            <span>CLI Deploy: </span>
+            <code class="text-orange-300">portgrid deploy kafka-kraft-akhq --with-ui</code>
+          </div>
+        </section>
+
+        <!-- 4. KEYCLOAK -->
+        <section id="keycloak" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-cyan-400">BLUEPRINT ID: keycloak-iam</span>
+              <h2 class="text-xl font-bold text-white">Keycloak 24 IAM + Dedicated PostgreSQL</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">Port 8085</span>
+              <span class="px-2 py-0.5 rounded bg-slate-500/10 text-slate-300 border border-slate-500/20">OIDC / SAML 2.0</span>
+            </div>
+          </div>
+          
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Enterprise identity, OpenID Connect, OAuth2, and SAML 2.0 provider backed by a production-tuned PostgreSQL database with pre-configured developer admin realms.
+          </p>
+
+          <div class="pt-2 text-xs font-mono text-slate-400">
+            <span>Issuer URL: </span>
+            <code class="text-cyan-300">http://localhost:8085/realms/master</code>
+          </div>
+        </section>
+
+        <!-- 5. RABBITMQ -->
+        <section id="rabbitmq" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-amber-400">BLUEPRINT ID: rabbitmq-management</span>
+              <h2 class="text-xl font-bold text-white">RabbitMQ 3.13 + Management Dashboard</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Port 5672 (AMQP)</span>
+              <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">UI Port 15672</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Robust AMQP message broker with dead letter exchanges, quorum queues, and an integrated management plugin.
+          </p>
+        </section>
+
+        <!-- 6. JENKINS -->
+        <section id="jenkins" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-blue-400">BLUEPRINT ID: jenkins-lts</span>
+              <h2 class="text-xl font-bold text-white">Jenkins CI/CD LTS Controller</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">UI Port 8090</span>
+              <span class="px-2 py-0.5 rounded bg-slate-500/10 text-slate-300 border border-slate-500/20">JNLP Port 50000</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            CI/CD orchestration controller with Docker-in-Docker capability and auto-configured root volume persistence.
+          </p>
+        </section>
+
+        <!-- 7. MONGODB -->
+        <section id="mongodb" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-emerald-400">BLUEPRINT ID: mongodb-express</span>
+              <h2 class="text-xl font-bold text-white">MongoDB 7.0 + Mongo Express</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Port 27017</span>
+              <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">UI Port 8081</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Document store database running wiredTiger storage engine paired with the Mongo Express administrative interface.
+          </p>
+        </section>
+
+        <!-- 8. CLICKHOUSE -->
+        <section id="clickhouse" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/[0.08] pb-4">
+            <div>
+              <span class="text-xs font-mono text-yellow-400">BLUEPRINT ID: clickhouse-olap</span>
+              <h2 class="text-xl font-bold text-white">ClickHouse Cloud-Native OLAP</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+              <span class="px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-300 border border-yellow-500/20">Port 8123 (HTTP)</span>
+              <span class="px-2 py-0.5 rounded bg-slate-500/10 text-slate-300 border border-slate-500/20">Port 9000 (Native)</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Columnar analytical database engine capable of real-time analytical queries over billions of records.
+          </p>
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="pt-8 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <a href="installation.html" class="text-slate-400 hover:text-white flex items-center space-x-1.5 transition-colors">
+            <span>&lt;-</span>
+            <span>Installation Guide</span>
+          </a>
+          <a href="security.html" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1.5 transition-colors">
+            <span>Security &amp; Governance</span>
+            <span>-&gt;</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#05070f] mt-20 py-8 relative z-10 text-xs text-slate-500 text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      PortGrid is open source software licensed under Apache 2.0. Built for zero-friction local cloud orchestration.
+    </div>
+  </footer>
+
+</body>
+</html>
