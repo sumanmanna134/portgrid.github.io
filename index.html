@@ -1,829 +1,2486 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PortGrid: Deterministic Local Cloud Services &amp; Developer Platform</title>
-  <meta name="description" content="Open source deterministic local cloud orchestrator. Run production-matched databases, caches, message queues, and companion admin consoles with zero port conflicts, FIPS 140-2 encryption, and SHA-256 Merkle audit ledgers.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>PortGrid — Local infrastructure, ready when you are</title>
+  <meta name="description"
+    content="PortGrid helps developers run databases, caches, message brokers, and companion admin consoles locally through a consistent service catalog and developer-friendly workflow.">
+  <meta property="og:title" content="PortGrid — Local infrastructure, ready when you are">
+  <meta property="og:description"
+    content="A local-first developer platform for running the services your applications depend on.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='13' fill='%230ea5e9'/%3E%3Cpath d='M24 7 8 15l16 8 16-8-16-8Zm-16 16 16 8 16-8M8 31l16 8 16-8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            brand: {
-              400: '#38bdf8',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              900: '#0c4a6e',
-            }
-          }
-        }
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b12;
+      --bg-soft: #0b101a;
+      --panel: #0e1420;
+      --panel-raised: #111a28;
+      --line: rgba(164, 184, 209, .14);
+      --line-strong: rgba(164, 184, 209, .22);
+      --text: #f3f7fc;
+      --muted: #9aa9bd;
+      --subtle: #6e8098;
+      --blue: #50b9f5;
+      --blue-bright: #75d0ff;
+      --teal: #62dfc0;
+      --radius: 20px;
+      --max: 1180px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .24);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 92px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "ss01" on;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background: radial-gradient(ellipse at 82% 0%, rgba(31, 115, 171, .16), transparent 34%),
+        radial-gradient(ellipse at 10% 32%, rgba(18, 71, 113, .1), transparent 34%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--blue-bright);
+      outline-offset: 4px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    ::selection {
+      background: rgba(80, 185, 245, .28);
+      color: #fff;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 48px));
+      margin-inline: auto;
+    }
+
+    .section {
+      padding-block: 96px;
+    }
+
+    .section.compact {
+      padding-block: 68px;
+    }
+
+    .section-head {
+      max-width: 700px;
+      margin: 0 auto 42px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 9px;
+      align-items: center;
+      color: var(--blue-bright);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 17px;
+      height: 1px;
+      background: currentColor;
+      opacity: .8;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: Manrope, "DM Sans", sans-serif;
+      line-height: 1.15;
+    }
+
+    h1 {
+      margin-bottom: 22px;
+      font-weight: 800;
+      letter-spacing: -.055em;
+      font-size: clamp(2.8rem, 5.6vw, 5rem);
+    }
+
+    h2 {
+      margin: 12px 0 14px;
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      letter-spacing: -.045em;
+      font-weight: 750;
+    }
+
+    h3 {
+      margin-bottom: 10px;
+      font-size: 1.04rem;
+      letter-spacing: -.025em;
+    }
+
+    .lead {
+      max-width: 640px;
+      color: #adbbce;
+      font-size: clamp(1rem, 1.45vw, 1.14rem);
+      line-height: 1.8;
+    }
+
+    .section-copy {
+      color: var(--muted);
+      max-width: 650px;
+      margin-inline: auto;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .subtle {
+      color: var(--subtle);
+    }
+
+    /* Navigation */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 11, 18, .82);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      flex-shrink: 0;
+    }
+
+    .brand-mark {
+      width: 37px;
+      height: 37px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .19);
+      border-radius: 12px;
+      color: white;
+      background: linear-gradient(145deg, #36b9f5, #0871bc);
+      box-shadow: 0 8px 24px rgba(14, 165, 233, .18);
+    }
+
+    .brand-name {
+      font-family: Manrope, sans-serif;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      font-size: 17px;
+    }
+
+    .brand-note {
+      color: var(--subtle);
+      font: 10px "JetBrains Mono", monospace;
+      margin-left: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: clamp(18px, 2.3vw, 30px);
+      color: #afbdcf;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-links a,
+    .footer-links a {
+      transition: color .18s ease;
+    }
+
+    .nav-links a:hover,
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .menu-toggle {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      color: white;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Buttons */
+    .btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border-radius: 11px;
+      padding: 0 17px;
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: #60c6f9;
+      color: #05111d;
+      box-shadow: 0 6px 24px rgba(35, 157, 222, .16);
+    }
+
+    .btn-primary:hover {
+      background: #83d5ff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, .035);
+      border-color: var(--line-strong);
+      color: #e5edf7;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, .07);
+      border-color: rgba(178, 201, 229, .33);
+    }
+
+    .btn-quiet {
+      min-height: 40px;
+      padding-inline: 13px;
+      border-color: var(--line);
+      color: #d6e1ee;
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .icon {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+    }
+
+    /* Hero */
+    .hero {
+      padding-block: 82px 64px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .98fr) minmax(440px, 1.02fr);
+      align-items: center;
+      gap: clamp(38px, 6vw, 82px);
+    }
+
+    .hero .eyebrow {
+      padding: 7px 11px;
+      border: 1px solid rgba(80, 185, 245, .22);
+      border-radius: 99px;
+      background: rgba(80, 185, 245, .07);
+      letter-spacing: .09em;
+    }
+
+    .hero .eyebrow::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 99px;
+      background: var(--teal);
+      box-shadow: 0 0 0 4px rgba(98, 223, 192, .1);
+    }
+
+    .hero h1 {
+      margin-top: 22px;
+      max-width: 640px;
+    }
+
+    .hero h1 .accent {
+      color: var(--blue-bright);
+    }
+
+    .hero .lead {
+      margin-bottom: 28px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 11px;
+      margin-bottom: 26px;
+    }
+
+    .install-command {
+      max-width: 610px;
+      border: 1px solid var(--line-strong);
+      background: rgba(6, 10, 17, .8);
+      border-radius: 15px;
+      padding: 12px 13px;
+      box-shadow: var(--shadow);
+    }
+
+    .install-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 0 2px 9px;
+      margin-bottom: 9px;
+      border-bottom: 1px solid var(--line);
+      color: var(--subtle);
+      font-size: 11px;
+    }
+
+    .terminal-dots {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .terminal-dots i {
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #e56e76;
+    }
+
+    .terminal-dots i:nth-child(2) {
+      background: #e8bd56;
+    }
+
+    .terminal-dots i:nth-child(3) {
+      background: #54c7a1;
+    }
+
+    .command-row {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .command-row code {
+      min-width: 0;
+      flex: 1;
+      color: #c1e8ff;
+      overflow-wrap: anywhere;
+      font: 12px/1.8 "JetBrains Mono", monospace;
+    }
+
+    .prompt {
+      color: #60839e;
+      margin-right: 8px;
+    }
+
+    .copy-btn {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      color: #adc4d8;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #121b28;
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+      border-color: rgba(80, 185, 245, .45);
+    }
+
+    .hero-footnote {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 16px;
+      color: var(--subtle);
+      font-size: 11px;
+    }
+
+    .hero-footnote span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-footnote svg {
+      width: 14px;
+      height: 14px;
+      color: var(--teal);
+    }
+
+    /* Product UI visual */
+    .product-window {
+      position: relative;
+      border: 1px solid rgba(150, 184, 219, .2);
+      border-radius: 19px;
+      overflow: hidden;
+      background: #090f19;
+      box-shadow: 0 36px 100px rgba(0, 0, 0, .42), 0 0 0 8px rgba(255, 255, 255, .012);
+      transform: perspective(1400px) rotateY(-3deg) rotateX(1deg);
+    }
+
+    .window-top {
+      min-height: 47px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      background: #0d1420;
+      padding: 0 15px;
+    }
+
+    .window-title {
+      color: #b2c0d1;
+      font: 11px "JetBrains Mono", monospace;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .window-title strong {
+      color: #ecf4fc;
+      font-weight: 500;
+    }
+
+    .live-chip {
+      flex-shrink: 0;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      border: 1px solid rgba(98, 223, 192, .19);
+      background: rgba(98, 223, 192, .07);
+      color: #76e8c8;
+      border-radius: 99px;
+      padding: 4px 8px;
+      font: 9px "JetBrains Mono", monospace;
+    }
+
+    .live-chip::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      background: currentColor;
+      border-radius: 50%;
+    }
+
+    .mock-dashboard {
+      min-height: 382px;
+      display: grid;
+      grid-template-columns: 122px minmax(0, 1fr);
+    }
+
+    .mock-sidebar {
+      border-right: 1px solid var(--line);
+      padding: 17px 10px;
+      background: rgba(255, 255, 255, .012);
+    }
+
+    .mock-side-label {
+      padding: 0 9px 9px;
+      color: #62748a;
+      font: 9px "JetBrains Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .mock-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px;
+      margin: 2px 0;
+      color: #8598ae;
+      font-size: 10px;
+      border-radius: 8px;
+    }
+
+    .mock-nav-item svg {
+      width: 13px;
+      height: 13px;
+      opacity: .8;
+    }
+
+    .mock-nav-item.active {
+      color: #bdeaff;
+      background: rgba(80, 185, 245, .12);
+      border: 1px solid rgba(80, 185, 245, .14);
+    }
+
+    .mock-main {
+      min-width: 0;
+      padding: 20px 18px 17px;
+    }
+
+    .mock-main-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 17px;
+    }
+
+    .mock-main h3 {
+      font-size: 17px;
+      margin: 0 0 5px;
+    }
+
+    .mock-description {
+      color: #71859c;
+      font-size: 10px;
+    }
+
+    .mock-small-action {
+      border: 1px solid rgba(80, 185, 245, .25);
+      background: rgba(80, 185, 245, .08);
+      color: #9bdfff;
+      padding: 6px 8px;
+      border-radius: 7px;
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .mock-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 17px;
+    }
+
+    .mock-metric {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .025);
+      border-radius: 9px;
+      padding: 10px;
+    }
+
+    .mock-metric span {
+      display: block;
+      color: #7a8da4;
+      font-size: 9px;
+    }
+
+    .mock-metric strong {
+      display: block;
+      color: #e4eef8;
+      margin-top: 5px;
+      font: 600 15px "JetBrains Mono", monospace;
+    }
+
+    .mock-metric strong.teal {
+      color: var(--teal);
+    }
+
+    .mock-service-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #cbd8e7;
+      font-size: 10px;
+    }
+
+    .mock-service-head span:last-child {
+      color: #73869d;
+      font: 9px "JetBrains Mono", monospace;
+    }
+
+    .mock-service {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 52px 66px;
+      gap: 8px;
+      align-items: center;
+      padding: 9px 8px;
+      border-top: 1px solid rgba(164, 184, 209, .08);
+      font-size: 10px;
+    }
+
+    .mock-service-name {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .service-glyph {
+      width: 23px;
+      height: 23px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      color: #9ddcff;
+      border: 1px solid rgba(80, 185, 245, .15);
+      background: rgba(80, 185, 245, .08);
+      border-radius: 7px;
+      font: 10px "JetBrains Mono", monospace;
+    }
+
+    .mock-service-name div {
+      min-width: 0;
+    }
+
+    .mock-service-name strong {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: #d9e6f4;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .mock-service-name small {
+      display: block;
+      color: #70849a;
+      margin-top: 2px;
+      font-size: 8px;
+    }
+
+    .mock-port {
+      color: #8296ac;
+      font: 9px "JetBrains Mono", monospace;
+    }
+
+    .mock-status {
+      justify-self: end;
+      color: #73e0c1;
+      background: rgba(98, 223, 192, .07);
+      border: 1px solid rgba(98, 223, 192, .16);
+      padding: 3px 6px;
+      border-radius: 6px;
+      font: 8px "JetBrains Mono", monospace;
+    }
+
+    .window-bottom {
+      min-height: 37px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      background: #0c131e;
+      padding: 0 14px;
+      color: #6f8298;
+      font: 9px "JetBrains Mono", monospace;
+    }
+
+    .window-bottom span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .window-bottom .health {
+      color: #75dfbd;
+    }
+
+    /* Benefit strip */
+    .capability-strip {
+      border-block: 1px solid var(--line);
+      background: rgba(255, 255, 255, .018);
+    }
+
+    .capability-inner {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .capability {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 22px 20px;
+      border-right: 1px solid var(--line);
+    }
+
+    .capability:first-child {
+      padding-left: 0;
+    }
+
+    .capability:last-child {
+      border-right: 0;
+    }
+
+    .capability-icon {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      color: var(--blue-bright);
+      border: 1px solid rgba(80, 185, 245, .15);
+      border-radius: 10px;
+      background: rgba(80, 185, 245, .07);
+    }
+
+    .capability-icon svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .capability strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .capability small {
+      display: block;
+      color: var(--subtle);
+      margin-top: 2px;
+      font-size: 10px;
+    }
+
+    /* Cards */
+    .blueprint-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .blueprint-card,
+    .feature-card,
+    .step-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(17, 26, 40, .9), rgba(12, 17, 27, .92));
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+
+    .blueprint-card:hover,
+    .feature-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(80, 185, 245, .32);
+      background: linear-gradient(145deg, rgba(20, 33, 49, .96), rgba(12, 17, 27, .96));
+    }
+
+    .blueprint-card {
+      padding: 19px;
+      display: flex;
+      flex-direction: column;
+      gap: 17px;
+    }
+
+    .card-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .category {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 6px;
+      padding: 4px 7px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #9ddfff;
+      border: 1px solid rgba(80, 185, 245, .18);
+      background: rgba(80, 185, 245, .07);
+    }
+
+    .port-pill {
+      white-space: nowrap;
+      color: #8193a8;
+      font: 10px "JetBrains Mono", monospace;
+    }
+
+    .blueprint-card h3 {
+      margin: 0 0 7px;
+      font-size: 15px;
+    }
+
+    .blueprint-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      min-height: 62px;
+    }
+
+    .card-meta {
+      margin-top: auto;
+      padding: 10px 11px;
+      border: 1px solid rgba(164, 184, 209, .09);
+      border-radius: 9px;
+      background: rgba(2, 5, 10, .25);
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      color: #8799ae;
+      font: 10px/1.6 "JetBrains Mono", monospace;
+    }
+
+    .meta-row+.meta-row {
+      margin-top: 5px;
+    }
+
+    .meta-row strong {
+      color: #c3d2e3;
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .meta-row .ui-port {
+      color: var(--teal);
+    }
+
+    .section-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue-bright);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .section-link:hover {
+      color: white;
+    }
+
+    .section-row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 30px;
+      margin-bottom: 31px;
+    }
+
+    .section-row-head .section-text {
+      max-width: 630px;
+    }
+
+    .section-row-head h2 {
+      margin-bottom: 10px;
+    }
+
+    .section-row-head p {
+      max-width: 620px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Product tour media */
+    .showcase {
+      border: 1px solid var(--line-strong);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #080d16;
+      box-shadow: var(--shadow);
+    }
+
+    .showcase-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #0d1420;
+    }
+
+    .showcase-top .left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .showcase-url {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #8fa2b8;
+      font: 11px "JetBrains Mono", monospace;
+    }
+
+    .showcase-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #77ddbe;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .showcase-status::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .showcase-view {
+      position: relative;
+      padding: clamp(10px, 2vw, 20px);
+      background: radial-gradient(ellipse at 50% 0%, rgba(52, 126, 181, .1), transparent 58%), #080d16;
+    }
+
+    .showcase-img {
+      width: 100%;
+      height: auto;
+      min-height: 260px;
+      max-height: 660px;
+      object-fit: contain;
+      object-position: top center;
+      border: 1px solid rgba(164, 184, 209, .12);
+      border-radius: 12px;
+      background: #0a0f19;
+    }
+
+    .media-fallback {
+      display: none;
+      min-height: 280px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 30px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 12px;
+      color: var(--muted);
+    }
+
+    .media-fallback strong {
+      display: block;
+      color: #dbe8f6;
+      margin-bottom: 5px;
+    }
+
+    .media-controls {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      background: #0c131e;
+      scrollbar-width: thin;
+    }
+
+    .media-btn {
+      min-height: 35px;
+      flex: 0 0 auto;
+      color: #91a1b5;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .media-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .media-btn[aria-pressed="true"] {
+      color: #bceaff;
+      border-color: rgba(80, 185, 245, .2);
+      background: rgba(80, 185, 245, .1);
+    }
+
+    /* Features */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .feature-card {
+      padding: 25px;
+    }
+
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(80, 185, 245, .18);
+      background: rgba(80, 185, 245, .08);
+      color: var(--blue-bright);
+    }
+
+    .feature-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 15px;
+    }
+
+    .feature-card p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .feature-card .micro-label {
+      display: block;
+      color: var(--subtle);
+      margin-bottom: 10px;
+      font: 10px "JetBrains Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* Workflow + code */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+      counter-reset: steps;
+    }
+
+    .step-card {
+      position: relative;
+      padding: 24px;
+    }
+
+    .step-number {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      color: var(--blue-bright);
+      border: 1px solid rgba(80, 185, 245, .2);
+      background: rgba(80, 185, 245, .08);
+      font: 11px "JetBrains Mono", monospace;
+      margin-bottom: 21px;
+    }
+
+    .step-card h3 {
+      margin-bottom: 9px;
+    }
+
+    .step-card p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 12px;
+      min-height: 43px;
+    }
+
+    .code-inline {
+      overflow-x: auto;
+      padding: 12px;
+      border: 1px solid rgba(164, 184, 209, .12);
+      border-radius: 9px;
+      background: rgba(0, 0, 0, .25);
+      color: #b5e7ff;
+      font: 11px/1.7 "JetBrains Mono", monospace;
+      white-space: nowrap;
+    }
+
+    .integration-panel {
+      border: 1px solid var(--line-strong);
+      border-radius: 18px;
+      padding: clamp(20px, 4vw, 34px);
+      background: linear-gradient(145deg, rgba(17, 26, 40, .94), rgba(10, 15, 24, .94));
+    }
+
+    .integration-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .integration-head h2 {
+      font-size: clamp(1.6rem, 2.7vw, 2.2rem);
+      margin: 9px 0;
+    }
+
+    .integration-head p {
+      margin: 0;
+      max-width: 600px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .code-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, .2);
+      flex-shrink: 0;
+    }
+
+    .code-tab {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a6bb;
+      font: 11px "JetBrains Mono", monospace;
+    }
+
+    .code-tab:hover {
+      color: #fff;
+    }
+
+    .code-tab[aria-pressed="true"] {
+      border-color: rgba(80, 185, 245, .18);
+      background: rgba(80, 185, 245, .1);
+      color: #b8eaff;
+    }
+
+    .code-window {
+      border: 1px solid rgba(164, 184, 209, .12);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #060a11;
+    }
+
+    .code-window-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(164, 184, 209, .1);
+      color: #8294aa;
+      font: 10px "JetBrains Mono", monospace;
+    }
+
+    .code-window-head button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, .035);
+      color: #c0d1e3;
+      font-size: 10px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 19px;
+      overflow: auto;
+      color: #c4d7e9;
+      font: 11px/1.85 "JetBrains Mono", monospace;
+      tab-size: 2;
+      white-space: pre;
+    }
+
+    /* Security and FAQs */
+    .security-band {
+      display: grid;
+      grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+      gap: 44px;
+      align-items: center;
+      padding: clamp(25px, 5vw, 50px);
+      border: 1px solid var(--line-strong);
+      border-radius: 20px;
+      background: radial-gradient(ellipse at 100% 0%, rgba(47, 132, 183, .13), transparent 45%), #0d1420;
+    }
+
+    .security-band h2 {
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+    }
+
+    .security-band p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .security-points {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .security-point {
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .018);
+    }
+
+    .security-point svg {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+      color: var(--teal);
+      margin-top: 1px;
+    }
+
+    .security-point strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .security-point small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .faq-list {
+      max-width: 850px;
+      margin-inline: auto;
+      display: grid;
+      gap: 9px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(15, 22, 34, .78);
+    }
+
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 18px 20px;
+      color: #e7eff8;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq-item summary::after {
+      content: "+";
+      color: var(--blue-bright);
+      font: 20px "DM Sans", sans-serif;
+    }
+
+    .faq-item[open] summary::after {
+      content: "−";
+    }
+
+    .faq-answer {
+      padding: 0 20px 19px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      max-width: 780px;
+    }
+
+    /* CTA / footer */
+    .cta-card {
+      text-align: center;
+      padding: clamp(32px, 6vw, 68px);
+      border: 1px solid rgba(80, 185, 245, .2);
+      border-radius: 22px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(53, 144, 199, .16), transparent 65%), linear-gradient(145deg, #101a29, #0b111c);
+      box-shadow: var(--shadow);
+    }
+
+    .cta-card h2 {
+      max-width: 760px;
+      margin: 13px auto;
+    }
+
+    .cta-card p {
+      max-width: 620px;
+      margin: 0 auto 25px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer {
+      padding-block: 30px;
+      border-top: 1px solid var(--line);
+      background: rgba(5, 8, 14, .65);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: #b5c5d7;
+      font-size: 11px;
+    }
+
+    .footer-mark {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #168ac7;
+      color: white;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      color: #8b9db1;
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 100;
+      transform: translateY(12px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 11px 15px;
+      border: 1px solid rgba(98, 223, 192, .25);
+      border-radius: 10px;
+      background: #10221f;
+      color: #a0f0d8;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      transition: opacity .18s, transform .18s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1050px) {
+      .nav-links {
+        gap: 16px;
+      }
+
+      .hero-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(370px, .95fr);
+        gap: 34px;
+      }
+
+      .blueprint-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .capability {
+        padding-inline: 14px;
       }
     }
-  </script>
-  <style>
-    body {
-      background-color: #060913;
-      color: #f1f5f9;
-      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-      -webkit-font-smoothing: antialiased;
+
+    @media (max-width: 820px) {
+      .container {
+        width: min(100% - 36px, var(--max));
+      }
+
+      .section {
+        padding-block: 72px;
+      }
+
+      .section.compact {
+        padding-block: 52px;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .nav-actions .github-link {
+        display: none;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 75px;
+        left: 18px;
+        right: 18px;
+        padding: 12px;
+        gap: 0;
+        flex-direction: column;
+        align-items: stretch;
+        border: 1px solid var(--line-strong);
+        border-radius: 14px;
+        background: #0c131e;
+        box-shadow: var(--shadow);
+      }
+
+      .nav-links.open {
+        display: flex;
+      }
+
+      .nav-links a {
+        padding: 12px;
+        border-radius: 8px;
+      }
+
+      .nav-links a:hover {
+        background: rgba(255, 255, 255, .045);
+      }
+
+      .hero {
+        padding-top: 62px;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 42px;
+      }
+
+      .hero-copy {
+        max-width: 720px;
+      }
+
+      .product-window {
+        max-width: 680px;
+        width: 100%;
+        margin-inline: auto;
+        transform: none;
+      }
+
+      .capability-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .capability:nth-child(2) {
+        border-right: 0;
+      }
+
+      .capability:nth-child(1),
+      .capability:nth-child(2) {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .capability:nth-child(3) {
+        padding-left: 0;
+      }
+
+      .section-row-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .integration-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .security-band {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
     }
-    .grid-bg {
-      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-      background-size: 32px 32px;
+
+    @media (max-width: 560px) {
+      .container {
+        width: calc(100% - 30px);
+      }
+
+      .nav {
+        min-height: 68px;
+        gap: 12px;
+      }
+
+      .nav-links {
+        top: 67px;
+        left: 15px;
+        right: 15px;
+      }
+
+      .brand-note {
+        display: none;
+      }
+
+      .nav-actions {
+        gap: 7px;
+      }
+
+      .nav-actions .btn-primary {
+        min-height: 39px;
+        padding-inline: 11px;
+        font-size: 11px;
+      }
+
+      .hero {
+        padding-top: 46px;
+        padding-bottom: 44px;
+      }
+
+      h1 {
+        font-size: clamp(2.55rem, 12vw, 3.6rem);
+      }
+
+      .hero .lead {
+        font-size: 14px;
+      }
+
+      .hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .hero-actions .btn {
+        width: 100%;
+      }
+
+      .install-head {
+        align-items: flex-start;
+      }
+
+      .install-head>span:last-child {
+        text-align: right;
+        max-width: 47%;
+      }
+
+      .command-row {
+        gap: 7px;
+      }
+
+      .command-row code {
+        font-size: 10px;
+      }
+
+      .product-window {
+        border-radius: 14px;
+      }
+
+      .window-top {
+        padding-inline: 10px;
+      }
+
+      .mock-dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .mock-sidebar {
+        display: none;
+      }
+
+      .mock-main {
+        padding: 14px 11px;
+      }
+
+      .mock-main h3 {
+        font-size: 15px;
+      }
+
+      .mock-metrics {
+        gap: 6px;
+      }
+
+      .mock-metric {
+        padding: 8px 7px;
+      }
+
+      .mock-metric strong {
+        font-size: 12px;
+      }
+
+      .mock-service {
+        grid-template-columns: minmax(0, 1fr) 45px 60px;
+        padding-inline: 4px;
+        gap: 4px;
+      }
+
+      .mock-service-name {
+        gap: 5px;
+      }
+
+      .window-bottom {
+        padding-inline: 10px;
+        font-size: 8px;
+      }
+
+      .capability {
+        padding: 16px 10px;
+        gap: 9px;
+      }
+
+      .capability-icon {
+        width: 31px;
+        height: 31px;
+      }
+
+      .capability strong {
+        font-size: 11px;
+      }
+
+      .capability small {
+        font-size: 9px;
+      }
+
+      .blueprint-grid,
+      .feature-grid,
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .blueprint-card p {
+        min-height: auto;
+      }
+
+      .showcase-top {
+        align-items: flex-start;
+        padding: 12px;
+      }
+
+      .showcase-img {
+        min-height: 170px;
+      }
+
+      .media-controls {
+        padding-inline: 9px;
+      }
+
+      .feature-card,
+      .step-card {
+        padding: 21px;
+      }
+
+      .step-card p {
+        min-height: auto;
+      }
+
+      .code-tabs {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .code-tab {
+        flex: 1;
+        padding-inline: 9px;
+      }
+
+      pre {
+        padding: 14px;
+        font-size: 10px;
+      }
+
+      .security-points {
+        grid-template-columns: 1fr;
+      }
+
+      .faq-item summary {
+        padding: 15px;
+        font-size: 12px;
+      }
+
+      .faq-answer {
+        padding-inline: 15px;
+      }
+
+      .footer-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .footer-links {
+        gap: 14px;
+      }
     }
-    .glow-radial {
-      background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.18) 0%, transparent 65%);
-    }
-    .glass-card {
-      background: rgba(13, 19, 33, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .glass-card:hover {
-      border-color: rgba(56, 189, 248, 0.35);
-    }
-    .code-scroll::-webkit-scrollbar {
-      height: 4px;
-    }
-    .code-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
-<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
 
-  <!-- BACKGROUND AMBIENT GLOW -->
-  <div class="fixed inset-0 pointer-events-none grid-bg opacity-40 z-0"></div>
-  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[650px] pointer-events-none glow-radial z-0"></div>
-
-  <!-- NAVIGATION HEADER -->
-  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/85 backdrop-blur-2xl">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <!-- Brand Logo -->
-      <a href="index.html" class="flex items-center space-x-3 group">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_12px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
-          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="PortGrid home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 2 9 5-9 5-9-5 9-5Z" />
+            <path d="m3 12 9 5 9-5M3 17l9 5 9-5" />
           </svg>
-        </div>
-        <div class="flex items-center space-x-2">
-          <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
-          <span class="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">v1.2.3</span>
-        </div>
+        </span>
+        <span><span class="brand-name">PortGrid</span><span class="brand-note">LOCAL CLOUD</span></span>
       </a>
-
-      <!-- Navigation Links -->
-      <nav class="hidden md:flex items-center space-x-7 text-xs font-medium text-slate-300">
-        <a href="#features" class="hover:text-white transition-colors">Features</a>
-        <a href="#blueprints" class="hover:text-white transition-colors">Blueprints</a>
-        <a href="#architecture" class="hover:text-white transition-colors">Security</a>
-        <a href="#quickstart" class="hover:text-white transition-colors">Quickstart</a>
-        <a href="docs/index.html" class="hover:text-white transition-colors">Documentation</a>
+      <nav class="nav-links" id="primaryNav" aria-label="Main navigation">
+        <a href="#blueprints">Services</a>
+        <a href="#features">Platform</a>
+        <a href="#product-tour">Product tour</a>
+        <a href="#security">Security</a>
+        <a href="docs/index.html">Docs</a>
       </nav>
-
-      <!-- Right Action Links -->
-      <div class="flex items-center space-x-3">
-        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 hover:text-white text-xs font-semibold border border-white/[0.08] transition-all">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+      <div class="nav-actions">
+        <a class="btn btn-quiet github-link" href="https://github.com/mannasuman134/portgrid" target="_blank"
+          rel="noopener noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
+        <a class="btn btn-primary" href="#quickstart">Get started <span aria-hidden="true">→</span></a>
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation menu"
+          aria-controls="primaryNav" aria-expanded="false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round">
+            <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
-          <span>Star</span>
-        </a>
-
-        <a href="#quickstart" class="px-3.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold transition-all shadow-[0_2px_12px_rgba(14,165,233,0.3)] active:scale-95">
-          Install PortGrid
-        </a>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTENT CONTAINER -->
-  <main class="relative z-10">
-
-    <!-- 1. HERO SECTION -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16 text-center space-y-8">
-      <!-- Badge -->
-      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-xs font-semibold text-sky-300 shadow-inner">
-        <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-        <span>Open Source Developer Cloud Runtime</span>
-      </div>
-
-      <!-- Headline -->
-      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1] max-w-5xl mx-auto">
-        Local Cloud Services with <br>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-400">
-          Deterministic Enclaves
-        </span>
-      </h1>
-
-      <!-- Subtitle -->
-      <p class="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
-        Run production-matched databases, caches, streaming brokers, and administrative consoles on local loopback with zero port collisions, FIPS 140-2 secrets encryption, and SHA-256 Merkle audit ledgers.
-      </p>
-
-      <!-- Terminal Install Block (One-Liner) -->
-      <div class="max-w-2xl mx-auto bg-black/60 border border-white/[0.1] rounded-2xl p-4 shadow-2xl text-left">
-        <div class="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-3">
-          <div class="flex items-center space-x-2">
-            <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
-            <span class="ml-2 font-mono text-xs text-slate-400">terminal</span>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">A local-first developer platform</span>
+          <h1>Your local infrastructure.<br><span class="accent">Without the setup sprawl.</span></h1>
+          <p class="lead">Run the databases, caches, message brokers, and admin consoles your applications need — from
+            one consistent workspace built for everyday development.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#quickstart">Start building <span aria-hidden="true">→</span></a>
+            <a class="btn btn-secondary" href="docs/index.html">Explore the documentation <span
+                aria-hidden="true">↗</span></a>
           </div>
-
-          <span class="text-[11px] font-mono text-slate-400">Node.js 18+ or Docker Engine</span>
-        </div>
-
-        <div class="flex items-center justify-between bg-black/40 px-3 py-2.5 rounded-xl border border-white/[0.06]">
-          <div class="font-mono text-xs sm:text-sm text-sky-300 flex items-center space-x-2 truncate mr-3">
-            <span class="text-slate-500 select-none">$</span>
-            <span id="installCmd">npm install -g portgrid &amp;&amp; portgrid up</span>
+          <div class="install-command" aria-label="Install command">
+            <div class="install-head"><span class="terminal-dots"
+                aria-hidden="true"><i></i><i></i><i></i></span><span>Start from your terminal</span></div>
+            <div class="command-row">
+              <code><span class="prompt">$</span><span id="installCmd">npm install -g portgrid &amp;&amp; portgrid up</span></code>
+              <button class="copy-btn" type="button" data-copy="installCmd" aria-label="Copy install command"
+                title="Copy command">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                  <path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" />
+                </svg>
+              </button>
+            </div>
           </div>
-
-          <button onclick="copyCommand('installCmd', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-slate-200 text-xs font-semibold flex items-center space-x-1 transition-all active:scale-95 shrink-0">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>Copy</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
-        <a href="#quickstart" class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-[0_4px_20px_rgba(14,165,233,0.35)] transition-all active:scale-95 flex items-center space-x-2">
-          <span>Read Installation Guide</span>
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </a>
-
-        <a href="docs/index.html" class="px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold text-sm border border-white/[0.1] transition-all active:scale-95">
-          Explore Architecture Spec
-        </a>
-      </div>
-
-      <!-- Live Telemetry Metric Strip -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6">
-        <div class="glass-card p-4 rounded-xl text-left">
-          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Port Collisions</span>
-          <span class="text-xl sm:text-2xl font-black font-mono text-emerald-400 mt-1 block">0 Guaranteed</span>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">Automated kernel probing</span>
-        </div>
-
-        <div class="glass-card p-4 rounded-xl text-left">
-          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Loopback Latency</span>
-          <span class="text-xl sm:text-2xl font-black font-mono text-sky-400 mt-1 block">&lt; 0.5 ms</span>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">Strict 127.0.0.1 bridge</span>
-        </div>
-
-        <div class="glass-card p-4 rounded-xl text-left">
-          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Storage Vault</span>
-          <span class="text-xl sm:text-2xl font-black font-mono text-cyan-400 mt-1 block">AES-256-GCM</span>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">FIPS 140-2 envelope</span>
-        </div>
-
-        <div class="glass-card p-4 rounded-xl text-left">
-          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Audit Trail</span>
-          <span class="text-xl sm:text-2xl font-black font-mono text-emerald-300 mt-1 block">SHA-256 Merkle</span>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">Four-Eyes Dual Control</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. PRODUCT SHOWCASE / INTERACTIVE MEDIA FRAME -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div class="glass-card rounded-2xl overflow-hidden border border-white/[0.12] shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
-        <!-- Mockup Top Window Chrome -->
-        <div class="bg-[#0b101c] px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
-            <span class="ml-2 font-mono text-xs text-slate-400 font-medium">PortGrid Control Center: http://localhost:3000</span>
-          </div>
-
-          <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-              Cluster Online
-            </span>
+          <div class="hero-footnote">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg>Local-first workflow</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg>Service blueprints</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg>Developer-friendly connections</span>
           </div>
         </div>
 
-        <!-- Interactive Media Viewer -->
-        <div class="p-2 sm:p-4 bg-[#080d1a]">
-          <img id="mainMediaDisplay" src="assets/images/product.gif" alt="PortGrid Interactive Control Center Demo" class="w-full h-auto rounded-xl border border-white/[0.08] shadow-2xl object-cover">
-        </div>
-
-        <!-- View Switcher Tabs -->
-        <div class="bg-[#0b101c] px-4 py-3 border-t border-white/[0.08] flex flex-wrap items-center justify-center gap-2 text-xs">
-          <button onclick="switchMedia('assets/images/product.gif', this)" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30 media-btn active">
-            Full Product Tour
-          </button>
-          <button onclick="switchMedia('assets/images/dashboard-overview.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
-            Runtime Overview
-          </button>
-          <button onclick="switchMedia('assets/images/service-catalog.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
-            Service Catalog
-          </button>
-          <button onclick="switchMedia('assets/images/audit-governance.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
-            Merkle Audit Ledger
-          </button>
-          <button onclick="switchMedia('assets/images/terminal-logs.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
-            Live Streaming Logs
-          </button>
-          <button onclick="switchMedia('assets/images/deployment-chamber.png', this)" class="px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn">
-            3D Enclave Chamber
-          </button>
+        <div class="product-window" aria-label="Illustration of the PortGrid control center">
+          <div class="window-top">
+            <span class="window-title"><span class="terminal-dots"
+                aria-hidden="true"><i></i><i></i><i></i></span><strong>PortGrid Control Center</strong></span>
+            <span class="live-chip">LOCAL WORKSPACE</span>
+          </div>
+          <div class="mock-dashboard">
+            <aside class="mock-sidebar" aria-hidden="true">
+              <div class="mock-side-label">Workspace</div>
+              <div class="mock-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.7">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>Overview</div>
+              <div class="mock-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <rect x="3" y="4" width="18" height="6" rx="1" />
+                  <rect x="3" y="14" width="18" height="6" rx="1" />
+                </svg>Services</div>
+              <div class="mock-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="M4 5h16M4 12h16M4 19h16" />
+                </svg>Blueprints</div>
+              <div class="mock-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" />
+                </svg>Logs</div>
+              <div class="mock-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="M12 3 4 7v5c0 5 8 9 8 9s8-4 8-9V7l-8-4Z" />
+                </svg>Security</div>
+            </aside>
+            <div class="mock-main">
+              <div class="mock-main-head">
+                <div>
+                  <h3>Workspace overview</h3>
+                  <div class="mock-description">Manage your local development services.</div>
+                </div>
+                <span class="mock-small-action">+ Add service</span>
+              </div>
+              <div class="mock-metrics">
+                <div class="mock-metric"><span>Services</span><strong>08</strong></div>
+                <div class="mock-metric"><span>Workspace</span><strong class="teal">LOCAL</strong></div>
+                <div class="mock-metric"><span>Profiles</span><strong>04</strong></div>
+              </div>
+              <div class="mock-service-head"><span>Installed services</span><span>VIEW CATALOG ↗</span></div>
+              <div class="mock-service">
+                <div class="mock-service-name"><span class="service-glyph">PG</span>
+                  <div><strong>PostgreSQL 16</strong><small>Database · persistent</small></div>
+                </div><span class="mock-port">:5432</span><span class="mock-status">RUNNING</span>
+              </div>
+              <div class="mock-service">
+                <div class="mock-service-name"><span class="service-glyph">R</span>
+                  <div><strong>Redis 7</strong><small>Cache · local</small></div>
+                </div><span class="mock-port">:6379</span><span class="mock-status">RUNNING</span>
+              </div>
+              <div class="mock-service">
+                <div class="mock-service-name"><span class="service-glyph">K</span>
+                  <div><strong>Apache Kafka</strong><small>Streaming · KRaft</small></div>
+                </div><span class="mock-port">:9092</span><span class="mock-status">RUNNING</span>
+              </div>
+              <div class="mock-service">
+                <div class="mock-service-name"><span class="service-glyph">M</span>
+                  <div><strong>MongoDB 7</strong><small>Document database</small></div>
+                </div><span class="mock-port">:27017</span><span class="mock-status">RUNNING</span>
+              </div>
+            </div>
+          </div>
+          <div class="window-bottom"><span>Local workspace · portgrid-net</span><span class="health">● Services
+              ready</span></div>
         </div>
       </div>
     </section>
 
-    <!-- 3. SERVICE BLUEPRINTS SHOWCASE -->
-    <section id="blueprints" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest block mb-2">Supported Infrastructure</span>
-          <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">One-Click Service Blueprints</h2>
-          <p class="text-sm text-slate-400 mt-2 max-w-xl">
-            Pre-configured production engines paired with zero-login administrative consoles, automated credential provisioning, and persistent encrypted volumes.
-          </p>
+    <section class="capability-strip" aria-label="PortGrid capabilities">
+      <div class="container capability-inner">
+        <div class="capability"><span class="capability-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.7">
+              <rect x="3" y="3" width="18" height="7" rx="2" />
+              <rect x="3" y="14" width="18" height="7" rx="2" />
+              <path d="M7 6.5h.01M7 17.5h.01" />
+            </svg></span><span><strong>Service catalog</strong><small>Common infrastructure in one place</small></span>
         </div>
-
-        <a href="docs/blueprints.html" class="inline-flex items-center space-x-2 text-xs font-semibold text-sky-400 hover:text-sky-300 transition-colors">
-          <span>View Detailed Connection Specs</span>
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </a>
+        <div class="capability"><span class="capability-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.7">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+              <circle cx="8" cy="7" r="1" fill="currentColor" />
+              <circle cx="15" cy="12" r="1" fill="currentColor" />
+            </svg></span><span><strong>Port-aware setup</strong><small>Clear connection details</small></span></div>
+        <div class="capability"><span class="capability-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.7">
+              <path d="M4 5h16v14H4zM8 9h8M8 13h5" />
+            </svg></span><span><strong>Companion consoles</strong><small>Admin UIs alongside services</small></span>
+        </div>
+        <div class="capability"><span class="capability-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.7">
+              <path d="M12 3v18M3 12h18" />
+              <circle cx="12" cy="12" r="9" />
+            </svg></span><span><strong>Developer workflow</strong><small>CLI plus visual control center</small></span>
+        </div>
       </div>
+    </section>
 
-      <!-- Grid of 6 Official + 2 Custom Blueprints -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- PostgreSQL -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">DATABASE</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :5432</span>
-            </div>
-            <h3 class="text-base font-bold text-white">PostgreSQL 16</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Enterprise ACID relational database with paired pgAdmin 4 web console.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">pgAdmin 4 (:5050)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">postgres:16-alpine</span></div>
-          </div>
+    <section id="product-tour" class="section compact">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Inside PortGrid</span>
+          <h2>A clearer view of your local stack.</h2>
+          <p class="section-copy">Move from service setup to connection details and runtime visibility in a single,
+            consistent workspace.</p>
         </div>
-
-        <!-- Redis -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">CACHE</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :6379</span>
+        <div class="showcase">
+          <div class="showcase-top">
+            <div class="left"><span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span><span
+                class="showcase-url">http://localhost:3000 · PortGrid Control Center</span></div><span
+              class="showcase-status">Local workspace</span>
+          </div>
+          <div class="showcase-view">
+            <img class="showcase-img" id="mainMediaDisplay" src="assets/images/product.gif"
+              alt="PortGrid control center product tour" loading="lazy">
+            <div class="media-fallback" id="mediaFallback">
+              <div><strong>Product preview</strong>The selected screenshot is not available at this path yet. Place the
+                product images under <code>assets/images/</code>.</div>
             </div>
-            <h3 class="text-base font-bold text-white">Redis 7</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">In-memory data structure store with instant Redis Commander web UI.</p>
           </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Redis Commander (:8081)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">redis:7-alpine</span></div>
-          </div>
-        </div>
-
-        <!-- Apache Kafka -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">STREAMING</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :9092</span>
-            </div>
-            <h3 class="text-base font-bold text-white">Apache Kafka (KRaft)</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Distributed event streaming broker (no Zookeeper) with Provectus UI.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Kafka UI (:8080)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">apache/kafka:3.7.0</span></div>
-          </div>
-        </div>
-
-        <!-- Keycloak -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">IDENTITY</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :8085</span>
-            </div>
-            <h3 class="text-base font-bold text-white">Keycloak 24</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Enterprise OpenID Connect, OAuth2, and SAML identity management console.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Admin Console (:8085)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">keycloak:24.0.2</span></div>
-          </div>
-        </div>
-
-        <!-- RabbitMQ -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-semibold">MESSAGE BROKER</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :5672</span>
-            </div>
-            <h3 class="text-base font-bold text-white">RabbitMQ 3.13</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Robust AMQP message queue broker with real-time web management.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Management UI (:15672)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">rabbitmq:3.13-mgmt</span></div>
-          </div>
-        </div>
-
-        <!-- Jenkins CI -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">DEVOPS CI/CD</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :8090</span>
-            </div>
-            <h3 class="text-base font-bold text-white">Jenkins CI/CD</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Automation engine with native pipeline execution and web dashboard.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Jenkins Web (:8090)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">jenkins:lts-jdk17</span></div>
-          </div>
-        </div>
-
-        <!-- MongoDB -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">DOCUMENT NO-SQL</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :27017</span>
-            </div>
-            <h3 class="text-base font-bold text-white">MongoDB 7</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">High-performance document database with visual Mongo Express manager.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Mongo Express (:8081)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">mongo:7</span></div>
-          </div>
-        </div>
-
-        <!-- ClickHouse -->
-        <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-semibold">OLAP ANALYTICS</span>
-              <span class="text-[10px] font-mono text-slate-400">Port :8123</span>
-            </div>
-            <h3 class="text-base font-bold text-white">ClickHouse OLAP</h3>
-            <p class="text-xs text-slate-400 mt-1 line-clamp-2">Column-oriented analytical engine with sub-second real-time queries.</p>
-          </div>
-          <div class="space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/[0.05] text-[11px] font-mono">
-            <div class="flex justify-between text-slate-400"><span>UI Console:</span> <span class="text-emerald-400 font-semibold">Native HTTP (:8123)</span></div>
-            <div class="flex justify-between text-slate-400"><span>Engine:</span> <span class="text-slate-300 truncate max-w-[130px]">clickhouse-server</span></div>
+          <div class="media-controls" role="group" aria-label="Product screenshots">
+            <button class="media-btn" type="button" data-media="assets/images/product.gif" aria-pressed="true">Product
+              tour</button>
+            <button class="media-btn" type="button" data-media="assets/images/catalog.png" aria-pressed="false">Service
+              catalog</button>
+            <button class="media-btn" type="button" data-media="assets/images/deploy.png"
+              aria-pressed="false">Deployment</button>
+            <button class="media-btn" type="button" data-media="assets/images/deploy-runtime.png"
+              aria-pressed="false">Runtime</button>
+            <button class="media-btn" type="button" data-media="assets/images/dualctrl.png"
+              aria-pressed="false">Approval workflow</button>
+            <button class="media-btn" type="button" data-media="assets/images/audit.png" aria-pressed="false">Audit
+              trail</button>
+            <button class="media-btn" type="button" data-media="assets/images/logs.png" aria-pressed="false">Live
+              logs</button>
+            <button class="media-btn" type="button" data-media="assets/images/deployment-enclave.png"
+              aria-pressed="false">Runtime isolation</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 4. CORE FEATURES (BENTO GRID) -->
-    <section id="features" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
-      <div class="text-center space-y-3">
-        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Built for Serious Engineering Teams</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Why Developers Choose PortGrid</h2>
-        <p class="text-sm text-slate-400 max-w-2xl mx-auto">
-          Unlike brittle docker-compose files and heavy VMs, PortGrid treats your workstation as an isolated, cryptographically auditable local cloud.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Feature 1 -->
-        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
-          <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-              <line x1="6" y1="6" x2="6.01" y2="6"></line>
-              <line x1="6" y1="18" x2="6.01" y2="18"></line>
-            </svg>
+    <section id="blueprints" class="section">
+      <div class="container">
+        <div class="section-row-head">
+          <div class="section-text"><span class="eyebrow">Service catalog</span>
+            <h2>Start with the services you already use.</h2>
+            <p>Choose a preconfigured blueprint for everyday development infrastructure. Where available, companion
+              administration consoles are included alongside the engine.</p>
           </div>
-          <h3 class="text-base font-bold text-white">Deterministic Port Allocation</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Never see "address already in use" again. PortGrid probes sockets before binding and deterministically increments ports without breaking connection strings.
-          </p>
+          <a class="section-link" href="docs/blueprints.html">Explore all blueprints <span
+              aria-hidden="true">→</span></a>
         </div>
-
-        <!-- Feature 2 -->
-        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-          </div>
-          <h3 class="text-base font-bold text-white">Strict 127.0.0.1 Enclaves</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Containers bind strictly to local loopback sockets. Zero external network exposure, eliminating accidental exposure over LAN, Wi-Fi, or public cloud bridges.
-          </p>
-        </div>
-
-        <!-- Feature 3 -->
-        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
-          <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </div>
-          <h3 class="text-base font-bold text-white">FIPS 140-2 Entropy Secrets</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Generates high-entropy AES-256-GCM passwords per instance. Secrets are sealed into an encrypted local vault and formatted into ready-to-copy .env files.
-          </p>
-        </div>
-
-        <!-- Feature 4 -->
-        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
-          <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="20" x2="18" y2="10"></line>
-              <line x1="12" y1="20" x2="12" y2="4"></line>
-              <line x1="6" y1="20" x2="6" y2="14"></line>
-            </svg>
-          </div>
-          <h3 class="text-base font-bold text-white">SHA-256 Merkle Audit Trail</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Every container spawn, credential generation, or volume purge writes an immutable cryptographic block to a tamper-evident audit chain with verifiable parent hashes.
-          </p>
-        </div>
-
-        <!-- Feature 5 -->
-        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
-          <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </div>
-          <h3 class="text-base font-bold text-white">NIST SP 800-88 Crypto-Shred</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            De-provisioning memory buffers are zeroed (`Buffer.fill(0)`) and data volume keys shredded, meeting Tier-1 fintech compliance and media sanitization rules.
-          </p>
-        </div>
-
-        <!-- Feature 6 -->
-        <div class="glass-card p-6 rounded-2xl space-y-3 border border-white/[0.08]">
-          <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          </div>
-          <h3 class="text-base font-bold text-white">Four-Eyes Dual Control (Maker-Checker)</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            In strict banking profile mode, destructive container tear-downs require a secondary authorized reviewer before volume deletion is executed.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. QUICKSTART WALKTHROUGH -->
-    <section id="quickstart" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
-      <div class="text-center space-y-3">
-        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Get Started in 3 Minutes</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Installation &amp; First Run</h2>
-        <p class="text-sm text-slate-400 max-w-xl mx-auto">
-          From zero to a running PostgreSQL 16 cluster with pgAdmin in three simple steps.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Step 1 -->
-        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">Step 1</span>
-            <h3 class="text-base font-bold text-white">Install PortGrid CLI</h3>
-            <p class="text-xs text-slate-400">Install globally via NPM or execute on-demand with npx.</p>
-          </div>
-
-          <div class="bg-black/60 p-3 rounded-xl border border-white/[0.08] font-mono text-xs text-sky-300">
-            <code>npm install -g portgrid</code>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Step 2</span>
-            <h3 class="text-base font-bold text-white">Boot Cluster Enclave</h3>
-            <p class="text-xs text-slate-400">Starts daemon and opens web control center on port 3000.</p>
-          </div>
-
-          <div class="bg-black/60 p-3 rounded-xl border border-white/[0.08] font-mono text-xs text-emerald-300">
-            <code>portgrid up</code>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">Step 3</span>
-            <h3 class="text-base font-bold text-white">Deploy &amp; Connect</h3>
-            <p class="text-xs text-slate-400">Launch any blueprint via terminal or the visual dashboard.</p>
-          </div>
-
-          <div class="bg-black/60 p-3 rounded-xl border border-white/[0.08] font-mono text-xs text-cyan-300">
-            <code>portgrid deploy postgresql</code>
-          </div>
+        <div class="blueprint-grid">
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Database</span><span class="port-pill">:5432</span></div>
+              <h3>PostgreSQL 16</h3>
+              <p>Relational database for application data, transactions, and local integration testing.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">pgAdmin · :5050</strong></div>
+              <div class="meta-row"><span>Image</span><strong>postgres:16-alpine</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Cache</span><span class="port-pill">:6379</span></div>
+              <h3>Redis 7</h3>
+              <p>In-memory data structures for caching, queues, and low-latency development scenarios.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">Redis Commander · :8081</strong></div>
+              <div class="meta-row"><span>Image</span><strong>redis:7-alpine</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Streaming</span><span class="port-pill">:9092</span>
+              </div>
+              <h3>Apache Kafka</h3>
+              <p>Event-streaming broker using KRaft mode for local producer and consumer development.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">Kafka UI · :8080</strong></div>
+              <div class="meta-row"><span>Image</span><strong>apache/kafka:3.7.0</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Identity</span><span class="port-pill">:8085</span></div>
+              <h3>Keycloak 24</h3>
+              <p>Local identity and access management for OpenID Connect, OAuth2, and SAML workflows.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">Admin console · :8085</strong></div>
+              <div class="meta-row"><span>Image</span><strong>keycloak:24.0.2</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Messaging</span><span class="port-pill">:5672</span>
+              </div>
+              <h3>RabbitMQ 3.13</h3>
+              <p>AMQP messaging for testing asynchronous services, routing, and worker integrations.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">Management · :15672</strong></div>
+              <div class="meta-row"><span>Image</span><strong>rabbitmq:3.13-mgmt</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">DevOps</span><span class="port-pill">:8090</span></div>
+              <h3>Jenkins</h3>
+              <p>Pipeline automation and CI experimentation in your local development environment.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">Jenkins · :8090</strong></div>
+              <div class="meta-row"><span>Image</span><strong>jenkins:lts-jdk17</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Document DB</span><span class="port-pill">:27017</span>
+              </div>
+              <h3>MongoDB 7</h3>
+              <p>Document database for testing JSON-oriented data models and application workflows.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Console</span><strong class="ui-port">Mongo Express · :8081</strong></div>
+              <div class="meta-row"><span>Image</span><strong>mongo:7</strong></div>
+            </div>
+          </article>
+          <article class="blueprint-card">
+            <div>
+              <div class="card-topline"><span class="category">Analytics</span><span class="port-pill">:8123</span>
+              </div>
+              <h3>ClickHouse</h3>
+              <p>Column-oriented analytics engine for developing and testing high-volume query patterns.</p>
+            </div>
+            <div class="card-meta">
+              <div class="meta-row"><span>Interface</span><strong class="ui-port">HTTP · :8123</strong></div>
+              <div class="meta-row"><span>Image</span><strong>clickhouse-server</strong></div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- 6. CODE CONNECTION SNIPPETS -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div class="glass-card rounded-2xl p-6 sm:p-8 border border-white/[0.1] space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h3 class="text-xl font-bold text-white">Direct Application Integration</h3>
-            <p class="text-xs text-slate-400 mt-1">Copy connection URLs or auto-injected environment snippets directly into your projects.</p>
-          </div>
-
-          <!-- Language Tabs -->
-          <div class="flex items-center space-x-1.5 bg-black/40 p-1 rounded-xl border border-white/[0.06] text-xs font-mono">
-            <button onclick="switchCode('env', this)" class="code-tab px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30">.env</button>
-            <button onclick="switchCode('node', this)" class="code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Node.js</button>
-            <button onclick="switchCode('python', this)" class="code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Python</button>
-            <button onclick="switchCode('go', this)" class="code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Go</button>
-          </div>
+    <section id="features" class="section compact">
+      <div class="container">
+        <div class="section-head"><span class="eyebrow">Designed for developer flow</span>
+          <h2>Less environment wrangling.<br>More time building.</h2>
+          <p class="section-copy">PortGrid brings the moving pieces around local services into one repeatable workflow,
+            from launch and credentials to runtime visibility.</p>
         </div>
+        <div class="feature-grid">
+          <article class="feature-card"><span class="micro-label">01 / Networking</span>
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <rect x="3" y="4" width="18" height="6" rx="2" />
+                <rect x="3" y="14" width="18" height="6" rx="2" />
+                <path d="M7 7h.01M7 17h.01" />
+              </svg></div>
+            <h3>Port-aware service setup</h3>
+            <p>Keep engine and companion UI ports visible, with connection information presented alongside each
+              installed service.</p>
+          </article>
+          <article class="feature-card"><span class="micro-label">02 / Local runtime</span>
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="M12 3 4 7v5c0 5 8 9 8 9s8-4 8-9V7l-8-4Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg></div>
+            <h3>Local-first by design</h3>
+            <p>Develop against services running in your own environment, keeping the local feedback loop close to your
+              code.</p>
+          </article>
+          <article class="feature-card"><span class="micro-label">03 / Admin tools</span>
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="M3 9h18M8 4v5" />
+              </svg></div>
+            <h3>Companion consoles</h3>
+            <p>Pair supported services with web-based management tools so you can inspect and operate them without
+              assembling every UI yourself.</p>
+          </article>
+          <article class="feature-card"><span class="micro-label">04 / Configuration</span>
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="M4 5h16M4 12h16M4 19h16" />
+                <circle cx="9" cy="5" r="2" fill="#0e1420" />
+                <circle cx="15" cy="12" r="2" fill="#0e1420" />
+                <circle cx="7" cy="19" r="2" fill="#0e1420" />
+              </svg></div>
+            <h3>Connection-ready configuration</h3>
+            <p>Find service ports and copy useful connection values into the application you are developing.</p>
+          </article>
+          <article class="feature-card"><span class="micro-label">05 / Operations</span>
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="M4 19V5M4 19h17" />
+                <path d="m7 15 4-5 3 2 5-7" />
+              </svg></div>
+            <h3>Runtime visibility</h3>
+            <p>Use the control center and terminal log views to review service state and understand what a container is
+              doing.</p>
+          </article>
+          <article class="feature-card"><span class="micro-label">06 / Extensibility</span>
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path d="M12 3v18M3 12h18" />
+                <circle cx="12" cy="12" r="9" />
+              </svg></div>
+            <h3>Custom service workflows</h3>
+            <p>Extend the catalog with container images, environment variables, persistent mounts, and optional
+              companion interfaces.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-        <div class="bg-black/80 rounded-xl p-4 border border-white/[0.06] overflow-x-auto code-scroll font-mono text-xs text-slate-200">
-          <pre id="codeSnippet"><code># Auto-generated by PortGrid FIPS 140-2 Entropy Engine
+    <section id="quickstart" class="section">
+      <div class="container">
+        <div class="section-head"><span class="eyebrow">Quickstart</span>
+          <h2>From terminal to running service.</h2>
+          <p class="section-copy">Start the local runtime, choose a blueprint, and connect your application with the
+            generated service details.</p>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card"><span class="step-number">01</span>
+            <h3>Install the CLI</h3>
+            <p>Install PortGrid globally with npm on a supported Node.js environment.</p>
+            <div class="code-inline">npm install -g portgrid</div>
+          </article>
+          <article class="step-card"><span class="step-number">02</span>
+            <h3>Start your workspace</h3>
+            <p>Bring up the local runtime and open the PortGrid control center.</p>
+            <div class="code-inline">portgrid up</div>
+          </article>
+          <article class="step-card"><span class="step-number">03</span>
+            <h3>Deploy and connect</h3>
+            <p>Deploy a service blueprint and use its port and connection details in your app.</p>
+            <div class="code-inline">portgrid deploy postgresql</div>
+          </article>
+        </div>
+        <div style="text-align:center;margin-top:24px"><a class="section-link" href="docs/installation.html">Read the
+            full installation guide <span aria-hidden="true">→</span></a></div>
+      </div>
+    </section>
+
+    <section id="integration" class="section compact">
+      <div class="container">
+        <div class="integration-panel">
+          <div class="integration-head">
+            <div><span class="eyebrow">Connect your app</span>
+              <h2>Bring local services into your code.</h2>
+              <p>Use the environment values and connection strings from your PortGrid workspace. Examples below use
+                placeholders; replace them with the credentials generated for your own service.</p>
+            </div>
+            <div class="code-tabs" role="group" aria-label="Code example language">
+              <button class="code-tab" type="button" data-code="env" aria-pressed="true">.env</button>
+              <button class="code-tab" type="button" data-code="node" aria-pressed="false">Node.js</button>
+              <button class="code-tab" type="button" data-code="python" aria-pressed="false">Python</button>
+              <button class="code-tab" type="button" data-code="go" aria-pressed="false">Go</button>
+            </div>
+          </div>
+          <div class="code-window">
+            <div class="code-window-head"><span id="codeFilename">.env.example</span><button type="button"
+                id="copySnippet"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8">
+                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                  <path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" />
+                </svg>Copy snippet</button></div>
+            <pre id="codeSnippet" tabindex="0"><code># Replace with values from your PortGrid service
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_USER=postgres
-DB_PASSWORD=a7f82c499b1a03e481f9b0c7
+DB_PASSWORD=${DB_PASSWORD}
 DB_NAME=devdb
-DATABASE_URL=postgresql://postgres:a7f82c499b1a03e481f9b0c7@127.0.0.1:5432/devdb
+DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@127.0.0.1:5432/devdb
 
-REDIS_URL=redis://:e830bf91ac2408891d4e@127.0.0.1:6379
+REDIS_URL=redis://:${REDIS_PASSWORD}@127.0.0.1:6379
 KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092</code></pre>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 7. COMPARISON TABLE -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-8">
-      <div class="text-center space-y-3">
-        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Industry Comparison</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">How PortGrid Compares</h2>
-      </div>
-
-      <div class="glass-card rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-white/[0.03] border-b border-white/[0.08] text-slate-300 font-mono uppercase text-[11px]">
-              <tr>
-                <th class="py-3.5 px-5 font-semibold">Capability</th>
-                <th class="py-3.5 px-5 font-bold text-sky-400 bg-sky-500/10">PortGrid</th>
-                <th class="py-3.5 px-5 font-semibold">Docker Compose</th>
-                <th class="py-3.5 px-5 font-semibold">LocalStack</th>
-                <th class="py-3.5 px-5 font-semibold">Minikube</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/[0.05] text-slate-300">
-              <tr>
-                <td class="py-3 px-5 font-medium text-white">Dynamic Port Conflict Resolution</td>
-                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Autonomous</td>
-                <td class="py-3 px-5 text-rose-400">Fails (Port Collision)</td>
-                <td class="py-3 px-5 text-slate-400">Limited (Mock only)</td>
-                <td class="py-3 px-5 text-amber-400">Manual NodePort</td>
-              </tr>
-              <tr>
-                <td class="py-3 px-5 font-medium text-white">Paired Zero-Login Web Consoles</td>
-                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Built-in (1-Click)</td>
-                <td class="py-3 px-5 text-rose-400">Manual YAML wiring</td>
-                <td class="py-3 px-5 text-rose-400">Paid Pro tier</td>
-                <td class="py-3 px-5 text-rose-400">Manual Port-Forward</td>
-              </tr>
-              <tr>
-                <td class="py-3 px-5 font-medium text-white">FIPS 140-2 AES-256 Vault</td>
-                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Hardware Sealed</td>
-                <td class="py-3 px-5 text-rose-400">Plaintext .env</td>
-                <td class="py-3 px-5 text-rose-400">Mock only</td>
-                <td class="py-3 px-5 text-amber-400">Base64 secrets</td>
-              </tr>
-              <tr>
-                <td class="py-3 px-5 font-medium text-white">SHA-256 Merkle Audit Ledger</td>
-                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">Tamper-Evident</td>
-                <td class="py-3 px-5 text-rose-400">No audit chain</td>
-                <td class="py-3 px-5 text-rose-400">No audit chain</td>
-                <td class="py-3 px-5 text-amber-400">Kubernetes Events</td>
-              </tr>
-              <tr>
-                <td class="py-3 px-5 font-medium text-white">RAM &amp; CPU Footprint</td>
-                <td class="py-3 px-5 text-emerald-400 font-bold bg-sky-500/05">&lt; 150 MB (Go/Node)</td>
-                <td class="py-3 px-5 text-emerald-400">Low</td>
-                <td class="py-3 px-5 text-amber-400">Medium (Python JVM)</td>
-                <td class="py-3 px-5 text-rose-400">Very High (4 GB+ VM)</td>
-              </tr>
-            </tbody>
-          </table>
+    <section id="security" class="section compact">
+      <div class="container">
+        <div class="security-band">
+          <div><span class="eyebrow">Local control &amp; visibility</span>
+            <h2>Keep your development environment understandable.</h2>
+            <p>PortGrid’s local-first workflow brings service configuration, generated connection details, runtime logs,
+              and operational actions closer together. Review the security documentation for the exact behavior and
+              configuration available in your version.</p><a class="section-link" href="docs/security.html">Review
+              security documentation <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="security-points">
+            <div class="security-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg><span><strong>Local-first runtime</strong><small>Run development services in your own
+                  environment.</small></span></div>
+            <div class="security-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg><span><strong>Credential workflows</strong><small>Keep generated connection values tied to the
+                  service setup.</small></span></div>
+            <div class="security-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg><span><strong>Operational logs</strong><small>Inspect startup output and runtime behavior from the
+                  UI.</small></span></div>
+            <div class="security-point"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m5 12 4 4L19 6" />
+              </svg><span><strong>Audit visibility</strong><small>Explore available operational audit features in the
+                  product.</small></span></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 8. FREQUENTLY ASKED QUESTIONS -->
-    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-10">
-      <div class="text-center space-y-3">
-        <span class="text-xs font-mono font-semibold text-sky-400 uppercase tracking-widest">Common Questions</span>
-        <h2 class="text-3xl font-extrabold text-white tracking-tight">Frequently Asked Questions</h2>
-      </div>
-
-      <div class="space-y-4">
-        <details class="glass-card rounded-xl p-4 group cursor-pointer">
-          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
-            <span>How does PortGrid avoid port collisions automatically?</span>
-            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
-          </summary>
-          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
-            When you deploy a blueprint, PortGrid verifies socket availability at the kernel level via standard TCP loopback handshake. If the default port (e.g. 5432) is occupied by a native PostgreSQL instance or colleague container, PortGrid deterministically increments the port (e.g. 5433), updates all dependent companion web UIs, and returns updated connection URIs.
-          </p>
-        </details>
-
-        <details class="glass-card rounded-xl p-4 group cursor-pointer">
-          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
-            <span>Does PortGrid send any data to external cloud servers?</span>
-            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
-          </summary>
-          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
-            No. PortGrid is 100% self-hosted and air-gapped ready. All containers bind strictly to 127.0.0.1. PortGrid has zero external telemetry, zero phoning home, and requires no cloud subscriptions.
-          </p>
-        </details>
-
-        <details class="glass-card rounded-xl p-4 group cursor-pointer">
-          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
-            <span>Can I onboard custom Docker images or private registries?</span>
-            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
-          </summary>
-          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
-            Yes. The built-in Service Catalog features an "Onboard Custom Service" workflow designer. You can specify any Docker image from Docker Hub, Quay.io, GitHub Container Registry (ghcr.io), or private enterprise registries, define environment variables, persistent mounts, and optional web UIs.
-          </p>
-        </details>
-
-        <details class="glass-card rounded-xl p-4 group cursor-pointer">
-          <summary class="font-semibold text-white text-sm list-none flex justify-between items-center">
-            <span>Is PortGrid suitable for commercial, banking, or defense projects?</span>
-            <span class="text-sky-400 font-mono text-sm group-open:rotate-90 transition-transform">&gt;</span>
-          </summary>
-          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
-            Yes. PortGrid was engineered specifically to pass strict fintech cybersecurity baselines. It implements strict 127.0.0.1 loopback enclaves, FIPS 140-2 AES-256 entropy keys, NIST SP 800-88 cryptographic shredding, and optional Four-Eyes dual control for container teardowns.
-          </p>
-        </details>
+    <section class="section compact" id="faq">
+      <div class="container">
+        <div class="section-head"><span class="eyebrow">Common questions</span>
+          <h2>Good to know before you start.</h2>
+          <p class="section-copy">A few quick answers about the PortGrid workflow.</p>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>How does PortGrid handle port conflicts?</summary>
+            <div class="faq-answer">PortGrid’s documented workflow checks port availability during service deployment
+              and can use an available port when a default is occupied. Check the current blueprint and connection
+              details for the effective port assigned to each service.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Does PortGrid require a hosted cloud account?</summary>
+            <div class="faq-answer">PortGrid is designed around a local development workflow. Consult the installation
+              guide and product documentation for current runtime requirements and any optional network behavior.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I add my own container images?</summary>
+            <div class="faq-answer">The product documentation describes a custom service workflow for defining container
+              images, environment variables, persistent mounts, and optional web interfaces. See the service catalog
+              documentation for supported fields and current limitations.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Where can I verify security-related behavior?</summary>
+            <div class="faq-answer">Use the security documentation for precise implementation details, version-specific
+              capabilities, and configuration requirements. Cryptographic or compliance properties should be evaluated
+              against the implementation and its deployment context.</div>
+          </details>
+        </div>
       </div>
     </section>
 
-    <!-- 9. FINAL CALL TO ACTION -->
-    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-6">
-      <div class="glass-card rounded-3xl p-8 sm:p-14 border border-sky-500/20 shadow-[0_10px_60px_rgba(14,165,233,0.15)] space-y-6 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-sky-500/10 via-transparent to-emerald-500/10 pointer-events-none"></div>
-
-        <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight">
-          Ready to Upgrade Your Local Development Stack?
-        </h2>
-
-        <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          Install the PortGrid CLI globally in 10 seconds. Free, open source, and deterministic.
-        </p>
-
-        <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
-          <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-lg active:scale-95 transition-all">
-            Star on GitHub
-          </a>
-          <a href="docs/installation.html" class="px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-semibold text-sm border border-white/[0.1] active:scale-95 transition-all">
-            Read Full Install Guide
-          </a>
+    <section class="section compact">
+      <div class="container">
+        <div class="cta-card"><span class="eyebrow">Build locally, with less friction</span>
+          <h2>Make your local stack part of your workflow.</h2>
+          <p>Start with a blueprint, get the connection details, and keep your service setup close to the code you are
+            building.</p>
+          <div class="cta-actions"><a class="btn btn-primary" href="#quickstart">Get started with PortGrid <span
+                aria-hidden="true">→</span></a><a class="btn btn-secondary"
+              href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer">Explore on
+              GitHub <span aria-hidden="true">↗</span></a></div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="border-t border-white/[0.08] bg-[#040710] py-12 relative z-10 text-xs text-slate-400">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-      <div class="flex items-center space-x-3">
-        <div class="w-6 h-6 rounded-lg bg-sky-500 flex items-center justify-center text-slate-950 font-bold">P</div>
-        <span class="text-slate-200 font-semibold text-sm">PortGrid Platform</span>
-        <span class="text-slate-600">|</span>
-        <span>Apache 2.0 Open Source License</span>
-      </div>
-
-      <div class="flex items-center space-x-6">
-        <a href="docs/installation.html" class="hover:text-white transition-colors">Install</a>
-        <a href="docs/blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
-        <a href="docs/security.html" class="hover:text-white transition-colors">Security</a>
-        <a href="https://github.com/mannasuman134/portgrid" class="hover:text-white transition-colors">GitHub</a>
-      </div>
+  <footer>
+    <div class="container footer-inner">
+      <div class="footer-brand"><span class="footer-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16"
+            height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="m12 2 9 5-9 5-9-5 9-5Z" />
+            <path d="m3 12 9 5 9-5M3 17l9 5 9-5" />
+          </svg></span><strong>PortGrid</strong><span>Local infrastructure for developers</span><span>·</span><span>Open
+          source</span></div>
+      <nav class="footer-links" aria-label="Footer navigation"><a href="docs/installation.html">Install</a><a
+          href="docs/blueprints.html">Blueprints</a><a href="docs/security.html">Security</a><a
+          href="docs/index.html">Documentation</a><a href="https://github.com/mannasuman134/portgrid" target="_blank"
+          rel="noopener noreferrer">GitHub ↗</a></nav>
     </div>
   </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- INTERACTIVE SCRIPTS -->
   <script>
-    function copyCommand(elementId, btn) {
-      const text = document.getElementById(elementId).innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<span>Copied!</span>';
-        btn.classList.add('text-emerald-300');
-        setTimeout(() => {
-          btn.innerHTML = originalHtml;
-          btn.classList.remove('text-emerald-300');
-        }, 2000);
+    (() => {
+      const toast = document.getElementById('toast');
+      let toastTimer;
+      function announce(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+      }
+      async function copyText(text) {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const helper = document.createElement('textarea');
+            helper.value = text;
+            helper.setAttribute('readonly', '');
+            helper.style.position = 'fixed';
+            helper.style.opacity = '0';
+            document.body.appendChild(helper);
+            helper.select();
+            const copied = document.execCommand('copy');
+            helper.remove();
+            if (!copied) throw new Error('Copy command failed');
+          }
+          announce('Copied to clipboard');
+        } catch (error) {
+          announce('Copy failed — select and copy the text manually');
+        }
+      }
+      document.querySelectorAll('[data-copy]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const element = document.getElementById(button.dataset.copy);
+          if (element) copyText(element.textContent.trim());
+        });
       });
-    }
 
-    function switchMedia(src, btn) {
-      document.getElementById('mainMediaDisplay').src = src;
-      document.querySelectorAll('.media-btn').forEach(b => {
-        b.className = 'px-3 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] media-btn';
+      const menuToggle = document.getElementById('menuToggle');
+      const nav = document.getElementById('primaryNav');
+      menuToggle.addEventListener('click', () => {
+        const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+        menuToggle.setAttribute('aria-expanded', String(!isOpen));
+        menuToggle.setAttribute('aria-label', isOpen ? 'Open navigation menu' : 'Close navigation menu');
+        nav.classList.toggle('open', !isOpen);
       });
-      btn.className = 'px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30 media-btn active';
-    }
+      nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+        nav.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation menu');
+      }));
 
-    const SNIPPETS = {
-      env: `# Auto-generated by PortGrid FIPS 140-2 Entropy Engine
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=a7f82c499b1a03e481f9b0c7
-DB_NAME=devdb
-DATABASE_URL=postgresql://postgres:a7f82c499b1a03e481f9b0c7@127.0.0.1:5432/devdb
-
-REDIS_URL=redis://:e830bf91ac2408891d4e@127.0.0.1:6379
-KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092`,
-
-      node: `import { Pool } from 'pg';
-import Redis from 'ioredis';
-
-// Connect to PortGrid Loopback Enclaves
-export const db = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:pass@127.0.0.1:5432/devdb'
-});
-
-export const redis = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379');`,
-
-      python: `import os
-import psycopg2
-import redis
-
-# Connect to PortGrid Loopback Enclaves
-conn = psycopg2.connect(
-    dsn=os.getenv("DATABASE_URL", "postgresql://postgres:pass@127.0.0.1:5432/devdb")
-)
-
-r = redis.from_url(os.getenv("REDIS_URL", "redis://127.0.0.1:6379"))`,
-
-      go: `package main
-
-import (
-  "database/sql"
-  _ "github.com/lib/pq"
-)
-
-func main() {
-  connStr := "postgresql://postgres:pass@127.0.0.1:5432/devdb?sslmode=disable"
-  db, err := sql.Open("postgres", connStr)
-  if err != nil {
-    panic(err)
-  }
-  defer db.Close()
-}`
-    };
-
-    function switchCode(lang, btn) {
-      document.querySelector('#codeSnippet code').innerText = SNIPPETS[lang];
-      document.querySelectorAll('.code-tab').forEach(t => {
-        t.className = 'code-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white';
+      const media = document.getElementById('mainMediaDisplay');
+      const fallback = document.getElementById('mediaFallback');
+      function setMediaSource(source, button) {
+        fallback.style.display = 'none';
+        media.style.display = 'block';
+        media.src = source;
+        document.querySelectorAll('[data-media]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+      }
+      document.querySelectorAll('[data-media]').forEach((button) => button.addEventListener('click', () => setMediaSource(button.dataset.media, button)));
+      media.addEventListener('error', () => {
+        media.style.display = 'none';
+        fallback.style.display = 'flex';
       });
-      btn.className = 'code-tab px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/30';
-    }
+      media.addEventListener('load', () => {
+        media.style.display = 'block';
+        fallback.style.display = 'none';
+      });
+
+      const snippets = {
+        env: {
+          filename: '.env.example',
+          source: '# Replace with values from your PortGrid service\nDB_HOST=127.0.0.1\nDB_PORT=5432\nDB_USER=postgres\nDB_PASSWORD=${DB_PASSWORD}\nDB_NAME=devdb\nDATABASE_URL=postgresql://postgres:${DB_PASSWORD}@127.0.0.1:5432/devdb\n\nREDIS_URL=redis://:${REDIS_PASSWORD}@127.0.0.1:6379\nKAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9092'
+        },
+        node: {
+          filename: 'database.js',
+          source: "import { Pool } from 'pg';\nimport Redis from 'ioredis';\n\n// Use connection details from your PortGrid workspace.\nexport const db = new Pool({\n  connectionString: process.env.DATABASE_URL,\n});\n\nexport const redis = new Redis(process.env.REDIS_URL);"
+        },
+        python: {
+          filename: 'connections.py',
+          source: 'import os\nimport psycopg2\nimport redis\n\n# Read local connection values from your environment.\nconn = psycopg2.connect(os.environ["DATABASE_URL"])\nr = redis.from_url(os.environ["REDIS_URL"])'
+        },
+        go: {
+          filename: 'main.go',
+          source: 'package main\n\nimport (\n    "database/sql"\n    "os"\n\n    _ "github.com/lib/pq"\n)\n\nfunc main() {\n    db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))\n    if err != nil {\n        panic(err)\n    }\n    defer db.Close()\n}'
+        }
+      };
+      const snippet = document.querySelector('#codeSnippet code');
+      const filename = document.getElementById('codeFilename');
+      let activeCode = 'env';
+      document.querySelectorAll('[data-code]').forEach((button) => {
+        button.addEventListener('click', () => {
+          activeCode = button.dataset.code;
+          document.querySelectorAll('[data-code]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+          snippet.textContent = snippets[activeCode].source;
+          filename.textContent = snippets[activeCode].filename;
+        });
+      });
+      document.getElementById('copySnippet').addEventListener('click', () => copyText(snippets[activeCode].source));
+    })();
   </script>
 </body>
+
 </html>

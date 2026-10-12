@@ -2,38 +2,6 @@
 
 This repository contains the complete, standalone open-source product landing page, interactive showcase, and technical documentation for **PortGrid: Deterministic Local Cloud Services & Developer Platform**.
 
----
-
-## 1. Directory Structure
-
-```text
-portgrid.github.io/
-|-- .github/
-|   `-- workflows/
-|       `-- deploy.yml              # GitHub Actions automated Pages deployment
-|-- assets/
-|   |-- css/                        # Custom stylesheet overrides
-|   |-- js/                         # Interactive scripts and handlers
-|   `-- images/                     # Product screenshots and recordings
-|       |-- product.gif             # Full live product recording (3.0MB)
-|       |-- dashboard-overview.png  # Primary dashboard telemetry screenshot
-|       |-- service-catalog.png     # Service catalog with 8 blueprints
-|       |-- audit-governance.png    # Cryptographic Merkle ledger & Four-Eyes UI
-|       |-- terminal-logs.png       # Live streaming terminal logs
-|       |-- deployment-chamber.png  # Verified enclave deployment screenshot
-|       |-- deployment-modal.png    # Modal deployment configuration
-|       `-- action-bar.png          # System action bar
-|-- docs/
-|   |-- index.html                  # Documentation Hub
-|   |-- installation.html           # Full Installation & Setup Guide
-|   |-- blueprints.html             # Catalog Blueprints & Connection Snippets
-|   |-- security.html               # Enterprise Security & Cryptography Whitepaper
-|   `-- cli.html                    # Complete CLI Command Reference
-|-- index.html                      # Flagship dark-obsidian Landing Page
-`-- README.md                       # Publishing & Deployment Instructions
-```
-
----
 
 ## 2. Previewing Locally
 
