@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CLI Command Reference - PortGrid Documentation</title>
-  <meta name="description" content="Complete command line reference manual for PortGrid CLI: up, down, ps, deploy, logs, audit, vault, and doctor.">
+  <meta name="description" content="Complete command line reference manual for PortGrid CLI: up, down, ps, catalog, deploy, stop, start, rm, logs, audit, vault, doctor, and update.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,7 +91,7 @@
       </nav>
 
       <div class="flex items-center space-x-3">
-        <a href="https://github.com/mannasuman134/portgrid" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+        <a href="https://github.com/sumanmanna134/portgrid.github.io" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
           </svg>
@@ -143,9 +143,13 @@
               <li><a href="#up" class="hover:text-sky-300">portgrid up</a></li>
               <li><a href="#down" class="hover:text-sky-300">portgrid down</a></li>
               <li><a href="#ps" class="hover:text-sky-300">portgrid ps</a></li>
+              <li><a href="#catalog" class="hover:text-sky-300">portgrid catalog</a></li>
               <li><a href="#deploy" class="hover:text-sky-300">portgrid deploy</a></li>
+              <li><a href="#stop" class="hover:text-sky-300">portgrid stop / start</a></li>
+              <li><a href="#rm" class="hover:text-sky-300">portgrid rm</a></li>
               <li><a href="#logs" class="hover:text-sky-300">portgrid logs</a></li>
               <li><a href="#audit" class="hover:text-sky-300">portgrid audit</a></li>
+              <li><a href="#vault" class="hover:text-sky-300">portgrid vault</a></li>
               <li><a href="#doctor" class="hover:text-sky-300">portgrid doctor</a></li>
             </ul>
           </div>
@@ -162,11 +166,11 @@
           </div>
           <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">CLI Command Reference</h1>
           <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
-            The <code class="text-sky-300 font-mono text-sm">portgrid</code> command line utility provides complete programmatic control over your local cloud environment, services, cryptographic secret vault, and audit verification.
+            The <code class="text-sky-300 font-mono text-sm">portgrid</code> command line utility provides complete programmatic control over local orchestrator lifecycles, service blueprints, container logs, cryptographic Merkle audits, and FIPS secret vaulting.
           </p>
         </div>
 
-        <!-- COMMAND 1: UP -->
+        <!-- 1. UP -->
         <section id="up" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
@@ -179,20 +183,20 @@
             Boots the background orchestrator daemon, binds the bridge network, initializes the FIPS secret vault, and opens the Web Management Console at <code class="text-sky-300 font-mono">http://localhost:3000</code>.
           </p>
           <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
-            portgrid up [--daemon] [--ui-port &lt;p&gt;] [--api-port &lt;p&gt;] [--vault-key &lt;path&gt;] [--offline]
+            portgrid up [--port &lt;p&gt;] [--bind &lt;ip&gt;] [--pull] [--no-open]
           </div>
           <div class="space-y-2 text-xs">
             <div class="font-semibold text-slate-300">Supported Flags:</div>
             <ul class="space-y-1.5 text-slate-400 font-mono text-[11px]">
-              <li><code class="text-sky-300">--daemon, -d</code> : Run orchestrator in background without keeping shell process open.</li>
-              <li><code class="text-sky-300">--ui-port &lt;number&gt;</code> : Override default Web Console port (default: 3000).</li>
-              <li><code class="text-sky-300">--api-port &lt;number&gt;</code> : Override daemon API port (default: 4000).</li>
-              <li><code class="text-sky-300">--offline</code> : Disallow any internet pulls; enforce strictly cached or air-gapped images.</li>
+              <li><code class="text-sky-300">--port, --ui-port &lt;number&gt;</code> : Override default Web Console port (default: 3000).</li>
+              <li><code class="text-sky-300">--bind &lt;address&gt;</code> : Loopback IP binding (default: 127.0.0.1).</li>
+              <li><code class="text-sky-300">--pull</code> : Force pull newest container image from registry prior to starting.</li>
+              <li><code class="text-sky-300">--no-open</code> : Prevent opening default web browser automatically upon readiness.</li>
             </ul>
           </div>
         </section>
 
-        <!-- COMMAND 2: DOWN -->
+        <!-- 2. DOWN -->
         <section id="down" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
@@ -202,22 +206,21 @@
             <span class="text-xs font-mono text-slate-400">TEARDOWN</span>
           </div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            Gracefully terminates all active blueprint containers, frees ephemeral network ports, and saves current configuration state. Data volumes are preserved by default.
+            Gracefully terminates all active blueprint containers and the orchestrator, freeing ephemeral network ports. Persistent data volumes are preserved by default.
           </p>
           <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
-            portgrid down [--purge] [--dry-run] [--force]
+            portgrid down [--purge] [--dry-run]
           </div>
           <div class="space-y-2 text-xs">
             <div class="font-semibold text-slate-300">Supported Flags:</div>
             <ul class="space-y-1.5 text-slate-400 font-mono text-[11px]">
               <li><code class="text-rose-400">--purge</code> : Permanently crypto-shred named data volumes and wipe container state.</li>
               <li><code class="text-sky-300">--dry-run</code> : Simulate teardown steps and display which containers and volumes would be affected.</li>
-              <li><code class="text-sky-300">--force</code> : Terminate containers immediately without waiting for graceful SIGTERM timeout.</li>
             </ul>
           </div>
         </section>
 
-        <!-- COMMAND 3: PS -->
+        <!-- 3. PS -->
         <section id="ps" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
@@ -227,48 +230,150 @@
             <span class="text-xs font-mono text-slate-400">STATUS &amp; TELEMETRY</span>
           </div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            Lists all provisioned services, container states, allocated host ports, companion web interfaces, and runtime memory consumption.
+            Lists orchestrator status, host port bindings, secret vault health, and a real-time table of all provisioned services, engine ports, and companion UI URLs.
           </p>
           <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
-            portgrid ps [--json] [--watch]
+            portgrid ps [--json] [--watch, -w]
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="font-semibold text-slate-300">Supported Flags:</div>
+            <ul class="space-y-1.5 text-slate-400 font-mono text-[11px]">
+              <li><code class="text-sky-300">--json</code> : Output structured JSON with complete service and container metadata.</li>
+              <li><code class="text-sky-300">--watch, -w</code> : Continuously re-poll and update the terminal display every 2 seconds.</li>
+            </ul>
           </div>
         </section>
 
-        <!-- COMMAND 4: DEPLOY -->
+        <!-- 4. CATALOG -->
+        <section id="catalog" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-indigo-400">$</span>
+              <span>portgrid catalog</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">BLUEPRINT REGISTRY</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Displays all available service blueprints from the registry with default ports, categories, and one-click deploy commands. (Alias: <code class="text-sky-300 font-mono">portgrid blueprints</code>).
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid catalog [--json]
+          </div>
+        </section>
+
+        <!-- 5. DEPLOY -->
         <section id="deploy" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
               <span class="text-purple-400">$</span>
-              <span>portgrid deploy &lt;service-id&gt;</span>
+              <span>portgrid deploy &lt;blueprint-id&gt;</span>
             </h2>
             <span class="text-xs font-mono text-slate-400">PROVISIONING</span>
           </div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            Instantiates a specific blueprint from the service catalog. Performs automated port collision avoidance and mounts companion management UIs.
+            Instantiates a specific blueprint from the catalog. Automatically allocates non-conflicting host ports, derives vault secrets, mounts companion UIs, and returns ready-to-use connection URIs.
           </p>
           <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
-            portgrid deploy postgres-pgadmin --with-ui
+            portgrid deploy &lt;postgres|redis|kafka|keycloak|rabbitmq|jenkins|mongodb|clickhouse&gt;
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="font-semibold text-slate-300">Examples:</div>
+            <ul class="space-y-1 text-slate-400 font-mono text-[11px]">
+              <li><code class="text-sky-300">portgrid deploy postgres</code> : Deploy PostgreSQL 16 + pgAdmin 4</li>
+              <li><code class="text-sky-300">portgrid deploy redis</code> : Deploy Redis 7.2 Stack + Redis Insight</li>
+              <li><code class="text-sky-300">portgrid deploy kafka</code> : Deploy Apache Kafka (KRaft) + AKHQ Console</li>
+            </ul>
           </div>
         </section>
 
-        <!-- COMMAND 5: AUDIT -->
+        <!-- 6. STOP / START -->
+        <section id="stop" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-yellow-400">$</span>
+              <span>portgrid stop / start &lt;service-id&gt;</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">SERVICE CONTROL</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Pause or resume an individual service enclave without affecting other running workloads or the PortGrid orchestrator.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid stop &lt;service-id&gt;<br>
+            portgrid start &lt;service-id&gt;
+          </div>
+        </section>
+
+        <!-- 7. RM -->
+        <section id="rm" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-red-400">$</span>
+              <span>portgrid rm &lt;service-id&gt;</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">DEPROVISIONING</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Uninstall an individual service, terminate its containers, and purge its associated storage volumes. (Aliases: <code class="text-sky-300 font-mono">uninstall</code>, <code class="text-sky-300 font-mono">remove</code>).
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid rm &lt;service-id&gt;
+          </div>
+        </section>
+
+        <!-- 8. LOGS -->
+        <section id="logs" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-cyan-400">$</span>
+              <span>portgrid logs [service-id]</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">STREAMING TELEMETRY</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Stream stdout/stderr logs from the orchestrator daemon or a specific service container.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid logs [service-id] [--follow, -f] [--tail &lt;n&gt;]
+          </div>
+        </section>
+
+        <!-- 9. AUDIT -->
         <section id="audit" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
-              <span class="text-amber-400">$</span>
-              <span>portgrid audit verify</span>
+              <span class="text-emerald-400">$</span>
+              <span>portgrid audit [verify]</span>
             </h2>
             <span class="text-xs font-mono text-slate-400">CRYPTOGRAPHIC PROOF</span>
           </div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            Validates the complete SHA-256 Merkle chain from genesis block to current head. Reports any detected log tampering or parent hash corruption.
+            Validates the complete SHA-256 Merkle chain from genesis block to current tip. Reports total chained events, hash integrity, and security compliance grade.
           </p>
           <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
-            portgrid audit verify [--chain] [--export-json &lt;output.json&gt;]
+            portgrid audit verify [--json] [--export-json &lt;path&gt;]
           </div>
         </section>
 
-        <!-- COMMAND 6: DOCTOR -->
+        <!-- 10. VAULT -->
+        <section id="vault" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
+              <span class="text-sky-400">$</span>
+              <span>portgrid vault [status|rekey]</span>
+            </h2>
+            <span class="text-xs font-mono text-slate-400">SECRET ENCLAVE</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Inspect the FIPS 140-2 AES-256 secret vault or rotate the cryptographic master key with automated historical backup.
+          </p>
+          <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
+            portgrid vault status<br>
+            portgrid vault rekey
+          </div>
+        </section>
+
+        <!-- 11. DOCTOR -->
         <section id="doctor" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
           <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
             <h2 class="text-lg font-mono font-bold text-white flex items-center space-x-2">
@@ -278,7 +383,7 @@
             <span class="text-xs font-mono text-slate-400">DIAGNOSTICS</span>
           </div>
           <p class="text-xs text-slate-300 leading-relaxed">
-            Performs comprehensive health checks across Docker socket connectivity, permissions, port availability, and network bridge health.
+            Performs comprehensive health checks across Docker socket connectivity, permissions, port availability, host memory, and CPU limits.
           </p>
           <div class="font-mono text-xs text-slate-200 bg-black/40 p-3 rounded-lg border border-white/[0.05]">
             portgrid doctor
