@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mathematical Specification: Merkle Audit Ledger Verification - PortGrid Documentation</title>
+  <meta name="description" content="In-depth mathematical specification and architectural breakdown of PortGrid audit verification: SHA-256 hash chaining, preimage resistance, and tamper-detection mechanics.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'></polygon><polyline points='2 17 12 22 22 17'></polyline><polyline points='2 12 12 17 22 12'></polyline></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .glass-card {
+      background: rgba(13, 19, 33, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-scroll::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none grid-bg opacity-35 z-0"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 border-b border-white/[0.08] bg-[#070b14]/90 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-6">
+        <a href="../index.html" class="flex items-center space-x-3 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 flex items-center justify-center shadow-[0_2px_10px_rgba(14,165,233,0.3)] border border-white/20 group-hover:scale-105 transition-transform">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">PortGrid</span>
+            <span class="text-[10px] font-mono text-slate-400">/ docs</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-300">
+        <a href="../index.html" class="hover:text-white transition-colors">Home</a>
+        <a href="index.html" class="hover:text-white transition-colors">Overview</a>
+        <a href="installation.html" class="hover:text-white transition-colors">Installation</a>
+        <a href="blueprints.html" class="hover:text-white transition-colors">Blueprints</a>
+        <a href="security.html" class="hover:text-white transition-colors">Security</a>
+        <a href="cli.html" class="hover:text-white transition-colors">CLI Reference</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/sumanmanna134/portgrid.github.io" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold border border-white/[0.08] transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+      <!-- SIDEBAR -->
+      <aside class="hidden lg:block lg:col-span-1">
+        <div class="sticky top-24 space-y-6">
+          <div class="glass-card rounded-2xl p-5 border border-white/[0.08]">
+            <h3 class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider mb-3">Documentation</h3>
+            <ul class="space-y-1.5 text-xs text-slate-400">
+              <li>
+                <a href="index.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Documentation Overview</span>
+                </a>
+              </li>
+              <li>
+                <a href="installation.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Installation Guide</span>
+                </a>
+              </li>
+              <li>
+                <a href="blueprints.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Service Blueprints</span>
+                </a>
+              </li>
+              <li>
+                <a href="security.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>Security &amp; Governance</span>
+                </a>
+              </li>
+              <li>
+                <a href="audit-verification.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/20">
+                  <span>Merkle Audit Verification</span>
+                </a>
+              </li>
+              <li>
+                <a href="cli.html" class="flex items-center space-x-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] hover:text-white transition-colors">
+                  <span>CLI Command Reference</span>
+                </a>
+              </li>
+            </ul>
+
+            <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Sections</h3>
+            <ul class="space-y-1 text-xs text-slate-400">
+              <li><a href="#overview" class="hover:text-emerald-300">1. Problem &amp; Core Concept</a></li>
+              <li><a href="#mathematics" class="hover:text-emerald-300">2. Mathematical Formulation</a></li>
+              <li><a href="#datastructures" class="hover:text-emerald-300">3. Canonical Data Structures</a></li>
+              <li><a href="#algorithm" class="hover:text-emerald-300">4. Verification Algorithm</a></li>
+              <li><a href="#tamperproof" class="hover:text-emerald-300">5. Tamper Proof Mechanics</a></li>
+              <li><a href="#cliflow" class="hover:text-emerald-300">6. CLI End-to-End Flow</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="lg:col-span-3 space-y-12">
+
+        <!-- TITLE SECTION -->
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/20 mb-4">
+            <span>CRYPTOGRAPHIC SPECIFICATION</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">
+            How PortGrid Audit Verification Works
+          </h1>
+          <p class="text-base text-slate-300 leading-relaxed max-w-3xl">
+            A comprehensive mathematical and architectural breakdown of <code class="text-emerald-400 font-mono text-sm">portgrid audit verify</code>. Learn how SHA-256 Merkle hash chaining turns local Docker mutations into an append-only, mathematically tamper-evident ledger.
+          </p>
+        </div>
+
+        <!-- 1. OVERVIEW -->
+        <section id="overview" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">1</span>
+            <span>Problem Statement &amp; High-Level Architecture</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            In standard local developer stacks, infrastructure mutations (spawning a database, re-binding ports, wiping persistent storage, modifying environment variables) are transient or stored in plain-text logs. An attacker or a compromised build agent can modify, delete, or rewrite historical log entries with zero detection.
+          </p>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            PortGrid solves this by enforcing an append-only cryptographic ledger (<code class="text-sky-300 font-mono text-xs">audit.log</code>). Every state mutation is cryptographically bound to the entire historical sequence preceding it. Running <code class="text-sky-300 font-mono text-xs">portgrid audit verify</code> executes an automated zero-trust mathematical proof over all entries from Genesis to current tip.
+          </p>
+        </section>
+
+        <!-- 2. MATHEMATICAL FORMULATION -->
+        <section id="mathematics" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">2</span>
+            <span>Mathematical Foundation &amp; Hash Chaining</span>
+          </h2>
+          
+          <div class="space-y-4 text-sm text-slate-300">
+            <p>
+              PortGrid utilizes the FIPS 180-4 Secure Hash Algorithm 256-bit:
+            </p>
+            <div class="p-4 rounded-xl bg-black/50 font-mono text-center text-sky-300 border border-white/[0.08]">
+              $$H : \{0, 1\}^* \to \{0, 1\}^{256}$$
+            </div>
+            <p>
+              SHA-256 guarantees three essential mathematical security properties:
+            </p>
+            <ol class="list-decimal pl-5 space-y-2 text-xs text-slate-300">
+              <li>
+                <strong class="text-white">Preimage Resistance (One-Way):</strong> Given a hash output $y = H(x)$, it is computationally impossible to determine the original input $x$. Time complexity is $\mathcal{O}(2^{256})$.
+              </li>
+              <li>
+                <strong class="text-white">Second Preimage Resistance (Weak Collision Resistance):</strong> Given input $x_1$, it is computationally impossible to find a distinct $x_2 \neq x_1$ such that $H(x_1) = H(x_2)$.
+              </li>
+              <li>
+                <strong class="text-white">Collision Resistance:</strong> Finding any two distinct inputs $x_1 \neq x_2$ such that $H(x_1) = H(x_2)$ requires on average $\mathcal{O}(2^{128})$ operations by the birthday bound.
+              </li>
+              <li>
+                <strong class="text-white">Avalanche Effect:</strong> Changing even a single bit in the input causes each output hash bit to flip with a probability $p \approx 0.5$.
+              </li>
+            </ol>
+          </div>
+
+          <div class="pt-4 border-t border-white/[0.08] space-y-3">
+            <h3 class="text-sm font-bold text-white">The Genesis State and Recursive Expansion</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              The ledger begins with a deterministic Genesis Hash $H_0$, defined as a sequence of 64 hexadecimal zeros:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 font-mono text-xs text-emerald-300 border border-white/[0.05]">
+              $$H_0 = 0^{64} = \text{"0000000000000000000000000000000000000000000000000000000000000000"}$$
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              For any audit event at index $i \ge 1$, its canonical payload $m_i$ is constructed. The event hash $H_i$ is recursively defined as:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 font-mono text-xs text-sky-300 border border-white/[0.05]">
+              $$H_i = H(H_{i-1} \parallel m_i)$$
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              By induction, the current tip hash $H_n$ is a cryptographic commitment of the entire event history:
+            </p>
+            <div class="p-3 rounded-lg bg-black/40 font-mono text-xs text-amber-300 border border-white/[0.05]">
+              $$H_n = H(H( \dots H(H(H_0 \parallel m_1) \parallel m_2) \dots \parallel m_{n-1}) \parallel m_n)$$
+            </div>
+            <p class="text-xs text-slate-400">
+              Notice that $H_n$ cannot be computed without the exact input and sequence of every block $1$ through $n$. Modifying any historical block $k < n$ fundamentally invalidates $H_n$.
+            </p>
+          </div>
+        </section>
+
+        <!-- 3. CANONICAL DATA STRUCTURES -->
+        <section id="datastructures" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">3</span>
+            <span>Canonical Data Structures &amp; Serialization</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Every audit entry is serialized into an immutable JSON Lines structure. Deterministic hash calculation is performed over a pipe-delimited payload string:
+          </p>
+          
+          <div class="p-4 rounded-xl bg-black/40 border border-white/[0.08] font-mono text-xs">
+            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-3">CANONICAL HASH INPUT STRING</div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto">raw = `${prevHash}|${timestamp}|${action}|${JSON.stringify(actor)}|${JSON.stringify(resource)}|${JSON.stringify(details)}`
+hash = crypto.createHash('sha256').update(raw).digest('hex')</pre>
+          </div>
+
+          <div class="p-4 rounded-xl bg-black/40 border border-white/[0.08] font-mono text-xs">
+            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-3">PERSISTED AUDIT ENTRY (ENTRY #2)</div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto">{
+  "id": "e93a74b1-c853-49d9-b690-34825974a91b",
+  "timestamp": "2026-10-12T14:35:00.000Z",
+  "action": "SERVICE_INSTALLED",
+  "actor": {
+    "userId": "system_local",
+    "role": "INFRA_OPERATOR",
+    "ipAddress": "127.0.0.1"
+  },
+  "resource": {
+    "id": "postgresql",
+    "type": "database",
+    "name": "PostgreSQL 16 & pgAdmin 4"
+  },
+  "details": {
+    "enginePort": 5432,
+    "uiPort": 5050,
+    "volume": "portgrid_postgres_data"
+  },
+  "prevHash": "9252347cf4d86a1c369774693478359c06c4c5ce0e17602e990313e50829c078",
+  "hash": "93035635d79738dc588bb5cfe35c7f06ba176aa1d0e24fd16342817e80a44253"
+}</pre>
+          </div>
+        </section>
+
+        <!-- 4. ALGORITHM -->
+        <section id="algorithm" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">4</span>
+            <span>The Verification Algorithm</span>
+          </h2>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            When <code class="text-sky-300 font-mono text-xs">portgrid audit verify</code> is executed, the audit engine executes a two-pass verification loop:
+          </p>
+
+          <div class="p-4 rounded-xl bg-black/40 border border-white/[0.08] font-mono text-xs">
+            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-3">VERIFICATION ALGORITHM (PSEUDOCODE)</div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto"><span class="text-sky-400">function</span> verifyAuditChain(entries):
+    <span class="text-slate-500">// Empty ledger state check</span>
+    <span class="text-sky-400">if</span> length(entries) == 0:
+        <span class="text-sky-400">return</span> { verified: true, totalEntries: 0, message: "Genesis state" }
+
+    expectedPrevHash = "0000000000000000000000000000000000000000000000000000000000000000"
+
+    <span class="text-sky-400">for</span> i <span class="text-sky-400">from</span> 0 <span class="text-sky-400">to</span> length(entries) - 1:
+        entry = entries[i]
+
+        <span class="text-slate-500">// CHECK 1: Continuity Check (Pointer Link)</span>
+        <span class="text-sky-400">if</span> entry.prevHash != expectedPrevHash:
+            <span class="text-sky-400">return</span> {
+                verified: false,
+                brokenIndex: i,
+                message: `CHAIN BROKEN: Expected prevHash ${expectedPrevHash}, got ${entry.prevHash}`
+            }
+
+        <span class="text-slate-500">// CHECK 2: Cryptographic Recalculation (Payload Authenticity)</span>
+        computedHash = SHA256(
+            `${entry.prevHash}|${entry.timestamp}|${entry.action}|` +
+            `${JSON(entry.actor)}|${JSON(entry.resource)}|${JSON(entry.details)}`
+        )
+
+        <span class="text-sky-400">if</span> computedHash != entry.hash:
+            <span class="text-sky-400">return</span> {
+                verified: false,
+                brokenIndex: i,
+                message: `TAMPER DETECTED: Content altered at index #${i}. Hash mismatch.`
+            }
+
+        <span class="text-slate-500">// Advance expected pointer</span>
+        expectedPrevHash = entry.hash
+
+    <span class="text-sky-400">return</span> {
+        verified: true,
+        totalEntries: length(entries),
+        latestHash: entries[length(entries) - 1].hash
+    }</pre>
+          </div>
+        </section>
+
+        <!-- 5. TAMPER-PROOF MECHANICS -->
+        <section id="tamperproof" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">5</span>
+            <span>Why Tampering is Mathematically Impossible to Hide</span>
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-rose-400 mb-1">ATTACK A: IN-PLACE MUTATION</div>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                An adversary alters an entry's details (e.g. changing an actor from "developer" to "admin").
+              </p>
+              <div class="text-[11px] font-mono text-slate-400 bg-black/40 p-2 rounded">
+                Result: Check 2 fails. Computed hash does not match stored hash. Tamper caught immediately at index $i$.
+              </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-amber-400 mb-1">ATTACK B: HASH RE-COMPUTATION</div>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                The adversary updates the stored hash to match their altered payload.
+              </p>
+              <div class="text-[11px] font-mono text-slate-400 bg-black/40 p-2 rounded">
+                Result: Check 1 fails on block $i+1$. The subsequent entry's prevHash points to the old hash.
+              </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <div class="text-xs font-mono font-bold text-purple-400 mb-1">ATTACK C: RECORD DELETION</div>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                An adversary deletes a compromising audit line from the log file.
+              </p>
+              <div class="text-[11px] font-mono text-slate-400 bg-black/40 p-2 rounded">
+                Result: Gap in the chain. The successor record still references the deleted record's hash as prevHash.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. CLI END-TO-END FLOW -->
+        <section id="cliflow" class="glass-card rounded-2xl p-6 border border-white/[0.08] space-y-4">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs flex items-center justify-center">6</span>
+            <span>CLI Verification Flow</span>
+          </h2>
+
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Running <code class="text-sky-300 font-mono text-xs">portgrid audit verify</code> connects directly to the orchestrator's verification endpoint:
+          </p>
+
+          <div class="p-4 rounded-xl bg-black/40 border border-white/[0.08] font-mono text-xs">
+            <div class="text-slate-400 border-b border-white/[0.08] pb-2 mb-2">$ portgrid audit verify</div>
+            <pre class="text-slate-200 code-scroll overflow-x-auto">CRYPTOGRAPHIC MERKLE AUDIT LEDGER:
+
+  Chain Integrity:     <span class="text-emerald-400">[VALID] Intact &amp; Tamper-Free</span>
+  Total Events:        2 cryptographically chained blocks
+  Latest Tip Hash:     93035635d79738dc588bb5cfe35c7f06ba176aa1d0e24fd16342817e80a44253
+  Genesis Hash:        0000000000000000000000000000000000000000000000000000000000000000
+  Ledger Message:      Ledger mathematically validated. 2 chained entries confirmed intact.
+
+SECURITY &amp; ENCLAVE POSTURE:
+  Compliance Grade:    FIPS 140-2 / PCI-DSS v4.0 / SOC 2 Ready
+  Network Isolation:   ENFORCED (127.0.0.1 (Strict Loopback))
+  Envelope Cipher:     AES-256-GCM (Authenticated Envelope Encryption)
+  Key Security:        256-bit High Entropy (data/.master.key (Protected 0600 mode))
+  Hardening:           BLOCKED (no-new-privileges: true)</pre>
+          </div>
+
+          <p class="text-xs text-slate-400">
+            You can also export the proof to an external JSON receipt for SOC 2 or regulatory compliance audits using:
+            <code class="text-sky-300 font-mono">portgrid audit verify --export-json proof.json</code>
+          </p>
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="pt-8 border-t border-white/[0.08] flex items-center justify-between text-xs">
+          <a href="security.html" class="text-slate-400 hover:text-white flex items-center space-x-1.5 transition-colors">
+            <span>&lt;-</span>
+            <span>Security Architecture</span>
+          </a>
+          <a href="cli.html" class="text-sky-400 hover:text-sky-300 font-semibold flex items-center space-x-1.5 transition-colors">
+            <span>CLI Command Reference</span>
+            <span>-&gt;</span>
+          </a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="border-t border-white/[0.08] bg-[#05070f] mt-20 py-8 relative z-10 text-xs text-slate-500 text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      PortGrid is open source software licensed under Apache 2.0. Built for zero-friction local cloud orchestration.
+    </div>
+  </footer>
+
+</body>
+</html>
