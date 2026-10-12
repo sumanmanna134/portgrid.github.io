@@ -343,6 +343,19 @@
           
           <div class="space-y-3">
             <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
+              <h3 class="text-xs font-mono font-bold text-sky-400 mb-1">PREREQUISITE: What if Docker is not installed on my system?</h3>
+              <p class="text-xs text-slate-300 leading-relaxed mb-2">
+                PortGrid orchestrates local databases, streaming brokers, and admin consoles as isolated loopback containers. To provision services, you need a local container engine. Install a runtime in one command:
+              </p>
+              <div class="space-y-1.5 font-mono text-[11px]">
+                <div class="p-2 rounded bg-black/40 text-slate-300"><span class="text-slate-500"># macOS (Homebrew - Docker Desktop or lightweight OrbStack/Colima):</span><br/><span class="text-sky-300">brew install --cask docker</span>  <span class="text-slate-500"># or: brew install --cask orbstack</span></div>
+                <div class="p-2 rounded bg-black/40 text-slate-300"><span class="text-slate-500"># Linux (Ubuntu / Debian / CentOS auto-installer):</span><br/><span class="text-sky-300">curl -fsSL https://get.docker.com | sh &amp;&amp; sudo systemctl enable --now docker</span></div>
+                <div class="p-2 rounded bg-black/40 text-slate-300"><span class="text-slate-500"># Windows (PowerShell via Windows Package Manager):</span><br/><span class="text-sky-300">winget install Docker.DockerDesktop</span></div>
+                <div class="p-2 rounded bg-black/40 text-slate-300"><span class="text-slate-500"># Podman users: PortGrid supports Podman out of the box:</span><br/><span class="text-sky-300">podman machine start</span>  <span class="text-slate-500"># or: systemctl --user enable --now podman.socket</span></div>
+              </div>
+            </div>
+
+            <div class="glass-card rounded-xl p-4 border border-white/[0.08]">
               <h3 class="text-xs font-mono font-bold text-amber-400 mb-1">ISSUE: Cannot connect to Docker daemon</h3>
               <p class="text-xs text-slate-300 leading-relaxed mb-2">
                 Occurs if Docker Desktop or OrbStack is not running, or if permissions on /var/run/docker.sock are restricted to root.
